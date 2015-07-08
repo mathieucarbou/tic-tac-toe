@@ -23,14 +23,25 @@ import com.guestful.client.mandrill.MandrillClient;
 import com.guestful.client.mandrill.MandrillConfig;
 import com.guestful.client.pusher.Pusher;
 import com.guestful.jaxrs.json.JsonProvider;
+import com.guestful.jaxrs.security.DefaultSecurityService;
+import com.guestful.jaxrs.security.SecurityService;
+import com.guestful.jaxrs.security.realm.AccountRepository;
+import com.guestful.jaxrs.security.realm.CredentialsMatcher;
+import com.guestful.jaxrs.security.realm.HashedCredentialsMatcher;
+import com.guestful.jaxrs.security.session.MemorySessionRepository;
+import com.guestful.jaxrs.security.session.SessionConfiguration;
+import com.guestful.jaxrs.security.session.SessionConfigurations;
+import com.guestful.jaxrs.security.session.SessionRepository;
 import com.guestful.json.JsonMapper;
 import com.guestful.json.groovy.GroovyJsonMapper;
+import com.guestful.jsr310.groovy.GroovyJsr310;
 import com.guestful.jsr310.mongo.MongoJsr310;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import groovy.lang.GString;
 import me.carbou.mathieu.tictactoe.Env;
 import me.carbou.mathieu.tictactoe.db.DB;
+import me.carbou.mathieu.tictactoe.security.MongoAccountRepository;
 import org.bson.BSON;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 
@@ -41,6 +52,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.UnknownHostException;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Locale;
@@ -52,8 +64,34 @@ public class ServiceBindings extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(JsonMapper.class).to(GroovyJsonMapper.class).in(Singleton.class);
         bind(Clock.class).toInstance(Clock.systemUTC()); // enabled override the whole system clock
+
+        // bind security service and the way of getting a connected UserContext
+        bind(SecurityService.class).to(DefaultSecurityService.class);
+        bind(AccountRepository.class).to(MongoAccountRepository.class);
+        bind(CredentialsMatcher.class).toInstance(new HashedCredentialsMatcher(3));
+        bind(SessionConfigurations.class).toInstance(new SessionConfigurations().add("gamer", new SessionConfiguration()
+            .setCheckOrigin(false)
+            .setCheckUserAgent(false)
+            .setMaxAge((int) Duration.ofDays(30).getSeconds())
+            .setCookieName(Env.isProduction() ? "id" : "id-" + Env.NAME)
+            .setCookiePath("/")
+            .setCookieDomain(Env.isLocal() ? null : ".carbou.me")));
+
+        if(Env.isLocal()) {
+            bind(SessionRepository.class).to(MemorySessionRepository.class);
+        } else {
+
+        }
+
+    }
+
+    @Provides
+    @Singleton
+    public JsonMapper jsonMapper() {
+        GroovyJsonMapper groovyJsonMapper = new GroovyJsonMapper();
+        GroovyJsr310.addJsr310EncodingHook(groovyJsonMapper.getSerializer());
+        return groovyJsonMapper;
     }
 
     @Provides

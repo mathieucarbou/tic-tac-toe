@@ -21,6 +21,7 @@ import com.google.inject.Stage;
 import com.guestful.jaxrs.filter.cors.CorsFilter;
 import com.guestful.jaxrs.filter.jsend.JSendFeature;
 import com.guestful.jaxrs.json.JsonProvider;
+import com.guestful.jaxrs.security.filter.SecurityFeature;
 import com.guestful.jersey.GApplication;
 import com.guestful.jersey.container.Container;
 import com.guestful.json.JsonMapper;
@@ -75,8 +76,10 @@ public class Main extends GApplication {
             .setAllowedOrigins("*")
             .setAllowedHeaders("X-Requested-With,Content-Type,Accept,Origin,X-HTTP-Method-Override,Authorization")
             .setAllowedMethods("GET,POST,PUT,DELETE"));
+
         registerClasses(
             HttpMethodOverrideFilter.class,
+            SecurityFeature.class,
             JSendFeature.class,
             GZipEncoder.class,
             DeflateEncoder.class,

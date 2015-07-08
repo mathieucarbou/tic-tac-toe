@@ -21,6 +21,7 @@ import org.glassfish.jersey.server.spi.Container;
 import org.glassfish.jersey.server.spi.ContainerLifecycleListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.JedisPool;
 
 import javax.inject.Inject;
 
@@ -33,6 +34,7 @@ public class LifecycleListener implements ContainerLifecycleListener {
 
     @Inject CloseableInjector closeableInjector;
     @Inject DB db;
+    @Inject JedisPool jedisPool;
 
     @Override
     public void onStartup(Container container) {
@@ -47,6 +49,7 @@ public class LifecycleListener implements ContainerLifecycleListener {
     @Override
     public void onShutdown(Container container) {
         closeableInjector.close();
+        jedisPool.close();
         db.close();
     }
 

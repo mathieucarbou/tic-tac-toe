@@ -42,8 +42,7 @@ public class UserResource {
     @Path("auth/facebook/{appid}/{uid}")
     @Consumes("application/json; charset=utf-8")
     @Produces("application/json; charset=utf-8")
-    public JsonObject auth(@Context ContainerRequestContext requestContext,
-                           @Context ContainerRequestContext request,
+    public JsonObject auth(@Context ContainerRequestContext request,
                            @PathParam("appid") String facebookAppId,
                            @PathParam("uid") String facebookUserId,
                            JsonObject fbData) {
@@ -56,7 +55,7 @@ public class UserResource {
                 facebookAppId,
                 fbData.getString("signedRequest", null)));
         } catch (LoginException e) {
-            throw new AuthenticationException("Invalid facebook access", e, requestContext);
+            throw new AuthenticationException("Invalid facebook access", e, request);
         }
 
         return me();

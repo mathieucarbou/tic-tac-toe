@@ -37,6 +37,7 @@ public final class Env {
     public static final String VERSION = getVersion();
 
     public static final String MONGOLAB_URI = env("MONGOLAB_URI", "mongodb://127.0.0.1:27017/tic-tac-toe");
+    public static final String REDISCLOUD_URL = env("REDISCLOUD_URL", "");
     public static final String PUSHER_URL = env("PUSHER_URL", "");
     public static final String FACEBOOK_APP_ID = env("FACEBOOK_APP_ID", "");
     public static final String FACEBOOK_APP_SECRET = env("FACEBOOK_APP_SECRET", "");
