@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" scanPeriod="20 seconds" debug="false">
+
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <encoder>
+            <pattern>%level %logger{0} [%thread] %msg%n%ex</pattern>
+        </encoder>
+        <filter class="com.guestful.logback.RangeFilter">
+            <max>INFO</max>
+        </filter>
+    </appender>
+
+    <appender name="STDERR" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <encoder>
+            <pattern>%level %logger{0} [%thread] %msg%n%ex</pattern>
+        </encoder>
+        <filter class="com.guestful.logback.RangeFilter">
+            <min>WARN</min>
+        </filter>
+    </appender>
+
+    <appender name="EMAIL" class="com.guestful.logback.FixedLogbackSMTPAppender">
+        <asynchronousSending>true</asynchronousSending>
+        <smtpHost>smtp.mandrillapp.com</smtpHost>
+        <port>587</port>
+        <starttls>true</starttls>
+        <username>${MANDRILL_USERNAME}</username>
+        <password>${MANDRILL_APIKEY}</password>
+        <to>mathieu@carbou.me</to>
+        <from>tictactoe-${ENV}@carbou.me</from>
+        <subject>[tictactoe] ${ENV}|${DYNO} - ERROR: %msg</subject>
+        <layout class="ch.qos.logback.classic.html.HTMLLayout"/>
+        <cyclicBufferTracker>
+            <bufferSize>1</bufferSize>
+        </cyclicBufferTracker>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+    </appender>
+
+    <logger name="me.carbou.mathieu.tictactoe" level="TRACE"/>
+    <logger name="com.guestful.client" level="INFO"/>
+    <logger name="com.guestful.jaxrs.security" level="INFO"/>
+
+    <logger name="org.glassfish.jersey.server.ApplicationHandler" level="INFO"/>
+    <logger name="com.mongodb.DynamicConnectionStatus" level="WARN"/>
+    <logger name="ch.qos.logback" level="WARN"/>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="STDERR"/>
+        <appender-ref ref="EMAIL"/>
+    </root>
+
+</configuration>

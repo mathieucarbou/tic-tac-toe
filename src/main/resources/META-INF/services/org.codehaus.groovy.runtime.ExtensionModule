@@ -1,0 +1,4 @@
+moduleName=tic-tac-toe
+moduleVersion=1
+extensionClasses=org.codehaus.groovy.runtime.DefaultGroovyMethods,com.guestful.jsr310.Jsr310Extensions
+staticExtensionClasses=org.codehaus.groovy.runtime.DefaultGroovyStaticMethods,com.guestful.jsr310.Jsr310StaticExtensions
