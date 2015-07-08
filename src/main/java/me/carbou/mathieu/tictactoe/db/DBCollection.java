@@ -194,19 +194,20 @@ public class DBCollection {
         return writeResult.getN();
     }
 
+    public void save(Map object) {
+        getCollection().save(new BasicDBObject(preSave(object)));
+    }
+
     public void insert(Map object) {
         insert(Collections.singletonList(object));
     }
 
     public void insert(Collection<Map> objects) {
-        getCollection().insert(objects.stream().map(m -> new BasicDBObject(preInsert(m))).collect(Collectors.toList()));
-        for (Map m : objects) {
-            m.remove("_id");
-        }
+        getCollection().insert(objects.stream().map(m -> new BasicDBObject(preSave(m))).collect(Collectors.toList()));
     }
 
     public void insertIfNotFound(Map where, Map object) {
-        getCollection().update(new BasicDBObject(addWhere(where)), new BasicDBObject("$setOnInsert", preInsert(object)), true, false);
+        getCollection().update(new BasicDBObject(addWhere(where)), new BasicDBObject("$setOnInsert", preSave(object)), true, false);
     }
 
     public void remove() {
@@ -230,11 +231,14 @@ public class DBCollection {
     }
 
     @SuppressWarnings("unchecked")
-    private Map preInsert(Map o) {
+    private Map preSave(Map o) {
         String subject = findCurrentSubject();
-        o.put("createdDate", ZonedDateTime.now(db.clock));
+        ZonedDateTime now = ZonedDateTime.now(db.clock);
+        if (!o.containsKey("_id")) {
+            o.put("createdDate", now);
+            o.put("createdBy", subject);
+        }
         o.put("updatedDate", o.get("createdDate"));
-        o.put("createdBy", subject);
         o.put("updatedBy", subject);
         return o;
     }
@@ -256,13 +260,20 @@ public class DBCollection {
 
     @SuppressWarnings("unchecked")
     private Map preUpdate(Map update) {
+        String subject = findCurrentSubject();
+        ZonedDateTime now = ZonedDateTime.now(db.clock);
+        if (!update.containsKey("$setOnInsert")) {
+            update.put("$setOnInsert", new LinkedHashMap<>());
+        }
         if (!update.containsKey("$set")) {
             update.put("$set", new LinkedHashMap<>());
         }
         Map $set = (Map) update.get("$set");
-        String subject = findCurrentSubject();
-        $set.put("updatedDate", ZonedDateTime.now(db.clock));
+        $set.put("updatedDate", now);
         $set.put("updatedBy", subject);
+        Map $setOnInsert = (Map) update.get("$setOnInsert");
+        $setOnInsert.put("createdDate", now);
+        $setOnInsert.put("createdBy", subject);
         return update;
     }
 

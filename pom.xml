@@ -55,6 +55,7 @@
     </repositories>
 
     <build>
+        <finalName>${project.artifactId}</finalName>
         <plugins>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -83,8 +84,10 @@
                         <goals>
                             <goal>addSources</goal>
                             <goal>addTestSources</goal>
+                            <goal>generateStubs</goal>
                             <goal>compile</goal>
                             <goal>testCompile</goal>
+                            <goal>removeStubs</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -23,3 +23,11 @@ These libraries focus on specialized modules for quickly start an application co
 * No validation !
 
 https://developers.facebook.com/quickstarts/971673849550778/?platform=web
+
+
+Librato
+Logentries
+Mandrill
+MongoLab
+Pusher
+Redis Cloud

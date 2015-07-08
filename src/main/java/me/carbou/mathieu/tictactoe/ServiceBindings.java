@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package me.carbou.mathieu.tictactoe.di;
+package me.carbou.mathieu.tictactoe;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -25,10 +25,8 @@ import com.guestful.client.pusher.Pusher;
 import com.guestful.jaxrs.json.JsonProvider;
 import com.guestful.jaxrs.security.DefaultSecurityService;
 import com.guestful.jaxrs.security.SecurityService;
-import com.guestful.jaxrs.security.realm.AccountRepository;
-import com.guestful.jaxrs.security.realm.CredentialsMatcher;
-import com.guestful.jaxrs.security.realm.HashedCredentialsMatcher;
-import com.guestful.jaxrs.security.session.MemorySessionRepository;
+import com.guestful.jaxrs.security.realm.*;
+import com.guestful.jaxrs.security.session.JedisJsonSessionRepository;
 import com.guestful.jaxrs.security.session.SessionConfiguration;
 import com.guestful.jaxrs.security.session.SessionConfigurations;
 import com.guestful.jaxrs.security.session.SessionRepository;
@@ -39,17 +37,20 @@ import com.guestful.jsr310.mongo.MongoJsr310;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import groovy.lang.GString;
-import me.carbou.mathieu.tictactoe.Env;
 import me.carbou.mathieu.tictactoe.db.DB;
-import me.carbou.mathieu.tictactoe.security.MongoAccountRepository;
+import me.carbou.mathieu.MongoAccountRepository;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.bson.BSON;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Protocol;
 
 import javax.inject.Singleton;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.time.Clock;
 import java.time.Duration;
@@ -70,25 +71,42 @@ public class ServiceBindings extends AbstractModule {
         bind(SecurityService.class).to(DefaultSecurityService.class);
         bind(AccountRepository.class).to(MongoAccountRepository.class);
         bind(CredentialsMatcher.class).toInstance(new HashedCredentialsMatcher(3));
-        bind(SessionConfigurations.class).toInstance(new SessionConfigurations().add("gamer", new SessionConfiguration()
+        bind(SessionConfigurations.class).toInstance(new SessionConfigurations().add("tic-tac-toe", new SessionConfiguration()
             .setCheckOrigin(false)
             .setCheckUserAgent(false)
             .setMaxAge((int) Duration.ofDays(30).getSeconds())
             .setCookieName(Env.isProduction() ? "id" : "id-" + Env.NAME)
             .setCookiePath("/")
             .setCookieDomain(Env.isLocal() ? null : ".carbou.me")));
+    }
 
-        if(Env.isLocal()) {
-            bind(SessionRepository.class).to(MemorySessionRepository.class);
-        } else {
+    @Provides
+    @javax.inject.Singleton
+    JedisPool jedisPool() {
+        URI connectionURI = URI.create(Env.REDISCLOUD_URL);
+        GenericObjectPoolConfig config = new GenericObjectPoolConfig();
+        config.setMinIdle(0);
+        config.setMaxIdle(5);
+        config.setMaxTotal(30);
+        String password = connectionURI.getUserInfo().split(":", 2)[1];
+        return new JedisPool(config, connectionURI.getHost(), connectionURI.getPort(), Protocol.DEFAULT_TIMEOUT, password);
+    }
 
-        }
+    @Provides
+    @javax.inject.Singleton
+    SessionRepository sessionRepository(JedisPool jedisPool, JsonMapper jsonMapper) {
+        return new JedisJsonSessionRepository(jedisPool, jsonMapper);
+    }
 
+    @Provides
+    @javax.inject.Singleton
+    Realm realm(HttpCookieRealm httpCookieRealm, LoginPasswordRealm loginPasswordRealm, PassthroughRealm passthroughRealm, FacebookRealm facebookRealm) {
+        return new FirstMatchingRealm(passthroughRealm, loginPasswordRealm, httpCookieRealm, facebookRealm);
     }
 
     @Provides
     @Singleton
-    public JsonMapper jsonMapper() {
+    JsonMapper jsonMapper() {
         GroovyJsonMapper groovyJsonMapper = new GroovyJsonMapper();
         GroovyJsr310.addJsr310EncodingHook(groovyJsonMapper.getSerializer());
         return groovyJsonMapper;
@@ -96,7 +114,7 @@ public class ServiceBindings extends AbstractModule {
 
     @Provides
     @Singleton
-    public Client client(JsonMapper jsonMapper) {
+    Client client(JsonMapper jsonMapper) {
         return ClientBuilder.newBuilder()
             .build()
             .register(JsonProcessingFeature.class) // javax.json support
@@ -105,7 +123,7 @@ public class ServiceBindings extends AbstractModule {
 
     @Provides
     @Singleton
-    public Pusher pusherClient(Client restClient) {
+    Pusher pusherClient(Client restClient) {
         return new Pusher(restClient, Env.PUSHER_URL);
     }
 
@@ -130,7 +148,7 @@ public class ServiceBindings extends AbstractModule {
 
     @Provides
     @Singleton
-    public DB db(Clock clock) throws UnknownHostException {
+    DB db(Clock clock) throws UnknownHostException {
         MongoClientURI mongoClientURI = new MongoClientURI(Env.MONGOLAB_URI);
         MongoClient mongoClient = new MongoClient(mongoClientURI);
         MongoJsr310.addJsr310EncodingHook();

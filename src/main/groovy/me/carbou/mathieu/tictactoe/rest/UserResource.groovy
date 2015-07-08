@@ -22,9 +22,10 @@ import com.guestful.jaxrs.security.annotation.Authenticated
 import com.guestful.jaxrs.security.subject.Subject
 import com.guestful.jaxrs.security.subject.SubjectContext
 import com.guestful.jaxrs.security.token.FacebookToken
+import me.carbou.mathieu.tictactoe.db.DB
 
 import javax.annotation.security.PermitAll
-import javax.json.Json
+import javax.inject.Inject
 import javax.json.JsonObject
 import javax.security.auth.login.LoginException
 import javax.ws.rs.*
@@ -34,22 +35,24 @@ import javax.ws.rs.core.Context
 /**
  * @author Mathieu Carbou (mathieu.carbou@gmail.com)
  */
-@Path("/api/user")
+@Path("/api/gamers")
 @Jsend
 public class UserResource {
+
+    @Inject DB db
 
     @POST
     @Path("auth/facebook/{appid}/{uid}")
     @Consumes("application/json; charset=utf-8")
     @Produces("application/json; charset=utf-8")
-    public JsonObject auth(@Context ContainerRequestContext request,
-                           @PathParam("appid") String facebookAppId,
-                           @PathParam("uid") String facebookUserId,
-                           JsonObject fbData) {
+    public Map auth(@Context ContainerRequestContext request,
+                    @PathParam("appid") String facebookAppId,
+                    @PathParam("uid") String facebookUserId,
+                    JsonObject fbData) {
 
         try {
             SubjectContext.login(new FacebookToken(
-                "gamer",
+                "tic-tac-toe",
                 facebookUserId,
                 new FacebookAccessToken(fbData.getString("accessToken")),
                 facebookAppId,
@@ -63,15 +66,14 @@ public class UserResource {
 
     @GET
     @Path("me")
-    @Authenticated("gamer")
+    @Authenticated("tic-tac-toe")
     @PermitAll
     @Produces("application/json; charset=utf-8")
-    public JsonObject me() {
-        Subject subject = SubjectContext.getSubject("gamer", false);
+    public Map me() {
+        Subject subject = SubjectContext.getSubject("tic-tac-toe", false);
         String guestId = subject.getPrincipal().getName();
-        return Json.createObjectBuilder()
-            .add("id", guestId)
-            .build();
+        Map gamer = db.users.findOne([_id: guestId])
+        return gamer
     }
 
 }
