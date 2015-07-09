@@ -28,6 +28,7 @@ import com.guestful.json.JsonMapper;
 import com.guestful.logback.LogbackConfigurator;
 import com.mycila.guice.ext.service.ServiceModule;
 import me.carbou.mathieu.tictactoe.rest.ApiResource;
+import me.carbou.mathieu.tictactoe.rest.GameResource;
 import me.carbou.mathieu.tictactoe.rest.StaticResource;
 import me.carbou.mathieu.tictactoe.rest.UserResource;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
@@ -89,6 +90,7 @@ public class Main extends GApplication {
         registerClasses(
             StaticResource.class,
             UserResource.class,
+            GameResource.class,
             ApiResource.class
         );
     }

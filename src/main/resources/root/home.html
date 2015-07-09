@@ -58,64 +58,20 @@
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
 
-    <style type="text/css">
-        .center {
-            margin: auto;
-            width: 80%;
-            border: 2px solid #8AC007;
-            padding: 10px;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        #footer {
-            padding-top: 50px;
-            text-align: center;
-            position: relative;
-            bottom: 0;
-            width: 100%;
-        }
-
-        h1, h2, h3, h4, h5 {
-            padding: 5px;
-            text-align: center;
-        }
-
-        #login {
-            text-align: center;
-        }
-
-        #login-status {
-            padding-left: 20px;
-            display: inline-block;
-            color: red;
-            font-weight: bold;
-        }
-
-        .rounded {
-            border-radius: 50%;
-        }
-
-        #user img, #user-name {
-            vertical-align: middle;
-        }
-
-        #user-name {
-            font-weight: bold;
-        }
-    </style>
+    <link rel="stylesheet" href="/app.css">
 
     <script type="application/javascript" src="/config.js"></script>
     <script type="application/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script type="application/javascript" src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.0/lodash.min.js"></script>
+    <script type="application/javascript" src="//js.pusher.com/2.2/pusher.min.js"></script>
+    <script type="application/javascript" src="/app.js"></script>
 </head>
 <body>
 
-<div class="center">
+<div class="container center border-lg">
     <h1>Tic-Tac-Toe by Mathieu Carbou</h1>
 
-    <div id="login" class="hidden">
+    <div id="login" class="hidden box border-sm">
         <fb:login-button scope="public_profile,email,user_friends" onlogin="checkLoginState();">
         </fb:login-button>
 
@@ -123,10 +79,22 @@
         </div>
     </div>
 
-    <div id="user" class="hidden">
+    <div id="user" class="hidden box border-sm">
     </div>
 
-    <div id="message" class="hidden">
+    <div class="box border-sm">
+        <div id="walloffame" class="hidden box border-sm">
+            <h3>Wall of Fame of top-10 players:</h3>
+            <ol>
+                <li>Empty! Play to be part of!</li>
+            </ol>
+        </div>
+
+        <div id="gamer-room" class="hidden box border-sm">
+            <h3>Available Gamers:</h3>
+            <ol>
+            </ol>
+        </div>
     </div>
 
     <div id="footer">
@@ -136,51 +104,6 @@
 </div>
 
 <script>
-
-    function checkLoginState() {
-        FB.getLoginStatus(function (response) {
-            console.log('checkLoginState()', response);
-            if (response.status === 'connected') {
-                // Logged into your app and Facebook.
-                connect(response.authResponse);
-            } else if (response.status === 'not_authorized') {
-                // The person is logged into Facebook, but not your app.
-                $('#login-status').text('Please log into this app.');
-                $('#login').show();
-            } else {
-                // The person is not logged into Facebook, so we're not sure if
-                // they are logged into this app or not.
-                $('#login-status').text('Please log into Facebook.');
-                $('#login').show();
-            }
-        });
-    }
-
-    function connect(authResponse) {
-        console.log('connect()', authResponse);
-        $.ajax('/api/users/auth/facebook/' + config.fbappid + '/' + authResponse.userID, {
-            type: "POST",
-            dataType: 'json',
-            contentType: 'application/json',
-            data: JSON.stringify(authResponse)
-        }).done(function (body) {
-            window.user = body.data;
-            $('#login').hide();
-            $('#user').append('<div><img class="rounded" src="//graph.facebook.com/' + body.data.fb_id + '/picture?width=32&height=32" alt="' + body.data.name + '">&nbsp;&nbsp;<span id="user-name">' + body.data.name + '</span></div>');
-            $('#user').show();
-        });
-    }
-
-    window.fbAsyncInit = function () {
-        FB.init({
-            appId: config.fbappid,
-            xfbml: true,
-            version: 'v2.3',
-            cookie: true
-        });
-        checkLoginState();
-    };
-
     (function (d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;

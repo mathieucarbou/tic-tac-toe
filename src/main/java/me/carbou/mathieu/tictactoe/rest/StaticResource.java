@@ -46,7 +46,7 @@ public class StaticResource {
     //@Cache(maxAge = 60 * 60) // 1-hour cache on browser-side
     public Response getPage(@PathParam("resource") String resource) throws IOException {
         if ("config.js".equals(resource)) {
-            return Response.ok("window.config = {fbappid: " + Env.FACEBOOK_APP_ID + "};", "application/javascript").build();
+            return Response.ok("window.config={fbappid:'" + Env.FACEBOOK_APP_ID + "',pusherkey:'" + URI.create(Env.PUSHER_URL).getUserInfo().split(":")[0] + "'};", "application/javascript").build();
         }
         URL url = null;
         if (Env.isLocal()) {
@@ -59,6 +59,7 @@ public class StaticResource {
         }
         if (url == null) throw new NotFoundException(resource);
         String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
+        if(type == null && resource.endsWith(".css")) type = "text/css";
         if (type == null) type = MediaType.APPLICATION_OCTET_STREAM;
         return Response.ok(ResourceGroovyMethods.getBytes(url), type).build();
     }

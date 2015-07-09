@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Mathieu Carbou (mathieu@carbou.me)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,15 +21,17 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.WriteResult;
-import me.carbou.mathieu.tictactoe.CloseableIterator;
 
 import java.time.Clock;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import static java.util.Spliterator.*;
 
 /**
  * @author Mathieu Carbou (mathieu.carbou@gmail.com)
@@ -52,94 +54,50 @@ public class DBCollection {
         getCollection().createIndex(new BasicDBObject(where));
     }
 
-    public final List<Map> aggregate(Map... pipeline) {
+    public final Stream<Map> aggregate(Map... pipeline) {
         Iterable<DBObject> it = getCollection().aggregate(Stream.of(pipeline).map(BasicDBObject::new).collect(Collectors.toList())).results();
-        return StreamSupport.stream(it.spliterator(), false).map(dbObject -> (Map) (dbObject instanceof Map ? dbObject : dbObject.toMap())).collect(Collectors.toList());
+        return StreamSupport.stream(it.spliterator(), false).map(dbObject -> (Map) (dbObject instanceof Map ? dbObject : dbObject.toMap()));
     }
 
-    public List<Map<String, Object>> find() {
-        return find(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Function.identity(), DB.NO_LIMIT, 0);
+    public Stream<Map<String, Object>> find() {
+        return find(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Function.<Map>identity(), DB.NO_LIMIT, 0);
     }
 
-    public List<Map<String, Object>> find(Map where) {
-        return find(where, Collections.emptyMap(), Collections.emptyMap(), Function.identity(), DB.NO_LIMIT, 0);
+    public Stream<Map<String, Object>> find(Map where) {
+        return find(where, Collections.emptyMap(), Collections.emptyMap(), Function.<Map>identity(), DB.NO_LIMIT, 0);
     }
 
-    public List<Map<String, Object>> find(Map where, Map fields) {
-        return find(where, fields, Collections.emptyMap(), Function.identity(), DB.NO_LIMIT, 0);
+    public Stream<Map<String, Object>> find(Map where, Map fields) {
+        return find(where, fields, Collections.emptyMap(), Function.<Map>identity(), DB.NO_LIMIT, 0);
     }
 
-    public List<Map<String, Object>> find(Map where, Map fields, Map sort) {
-        return find(where, fields, sort, Function.identity(), DB.NO_LIMIT, 0);
+    public Stream<Map<String, Object>> find(Map where, Map fields, Map sort) {
+        return find(where, fields, sort, Function.<Map>identity(), DB.NO_LIMIT, 0);
     }
 
-    public List<Map<String, Object>> find(Map where, Map fields, Map sort, Function<Map, Map> transform) {
+    public Stream<Map<String, Object>> find(Map where, Map fields, Map sort, Function<Map, Map> transform) {
         return find(where, fields, sort, transform, DB.NO_LIMIT, 0);
     }
 
-    public List<Map<String, Object>> find(Map where, Map fields, Map sort, Function<Map, Map> transform, int limit, int skip) {
-        List<Map<String, Object>> results = new ArrayList<>();
-        try (CloseableIterator<Map<String, Object>> it = iterate(where, fields, sort, transform, limit, skip)) {
-            it.forEachRemaining(results::add);
-        }
-        return results;
-    }
-
-    public CloseableIterator<Map<String, Object>> iterate() {
-        return iterate(Collections.emptyMap(), Collections.emptyMap(), Collections.emptyMap(), Function.<Map>identity(), DB.NO_LIMIT, 0);
-    }
-
-    public CloseableIterator<Map<String, Object>> iterate(Map where) {
-        return iterate(where, Collections.emptyMap(), Collections.emptyMap(), Function.<Map>identity(), DB.NO_LIMIT, 0);
-    }
-
-    public CloseableIterator<Map<String, Object>> iterate(Map where, Map fields) {
-        return iterate(where, fields, Collections.emptyMap(), Function.<Map>identity(), DB.NO_LIMIT, 0);
-    }
-
-    public CloseableIterator<Map<String, Object>> iterate(Map where, Map fields, Map sort) {
-        return iterate(where, fields, sort, Function.<Map>identity(), DB.NO_LIMIT, 0);
-    }
-
-    public CloseableIterator<Map<String, Object>> iterate(Map where, Map fields, Map sort, Function<Map, Map> transform) {
-        return iterate(where, fields, sort, transform, DB.NO_LIMIT, 0);
-    }
-
-    public CloseableIterator<Map<String, Object>> iterate(Map where, Map fields, Map sort, Function<Map, Map> transform, int limit, int skip) {
-        final DBCursor cur = getCollection().find(new BasicDBObject(addWhere(where)), new BasicDBObject(preFind(fields)));
-        if (!sort.isEmpty()) cur.sort(new BasicDBObject(sort));
-        if (skip > 0) cur.skip(skip);
-        if (limit > DB.NO_LIMIT) cur.limit(limit);
-        return new CloseableIterator<Map<String, Object>>() {
-            DBCursor cursor = cur;
-
+    public Stream<Map<String, Object>> find(Map where, Map fields, Map sort, Function<Map, Map> transform, int limit, int skip) {
+        final DBCursor cursor = getCollection().find(new BasicDBObject(addWhere(where)), new BasicDBObject(preFind(fields)));
+        if (!sort.isEmpty()) cursor.sort(new BasicDBObject(sort));
+        if (skip > 0) cursor.skip(skip);
+        if (limit > DB.NO_LIMIT) cursor.limit(limit);
+        int est = cursor.size();
+        Spliterator<Map<String, Object>> spliterator = new Spliterators.AbstractSpliterator<Map<String, Object>>(est, NONNULL | ORDERED | SIZED | IMMUTABLE) {
             @Override
-            public boolean hasNext() {
-                if (cursor == null) return false;
-                boolean hasNext = cursor.hasNext();
-                if (!hasNext) close();
-                return hasNext;
-            }
-
-            @Override
-            public Map<String, Object> next() {
-                if (cursor == null) throw new NoSuchElementException();
-                return postFind(where, cursor.next(), transform);
-            }
-
-            @Override
-            public void remove() {
-                if (cursor != null) cursor.remove();
-            }
-
-            @Override
-            public void close() {
-                if (cursor != null) {
+            public boolean tryAdvance(Consumer<? super Map<String, Object>> action) {
+                if (cursor.hasNext()) {
+                    action.accept(postFind(where, cursor.next(), transform));
+                    return true;
+                } else {
                     cursor.close();
-                    cursor = null;
+                    return false;
                 }
             }
         };
+        return StreamSupport.stream(spliterator, false);
     }
 
     public Map<String, Object> findOne(Map<String, Object> where) {
@@ -194,16 +152,18 @@ public class DBCollection {
         return writeResult.getN();
     }
 
-    public void save(Map object) {
+    public String save(Map object) {
         getCollection().save(new BasicDBObject(preSave(object)));
+        return (String) object.get("id");
     }
 
-    public void insert(Map object) {
-        insert(Collections.singletonList(object));
+    public String insert(Map object) {
+        return insert(Collections.singletonList(object)).get(0);
     }
 
-    public void insert(Collection<Map> objects) {
+    public List<String> insert(List<Map> objects) {
         getCollection().insert(objects.stream().map(m -> new BasicDBObject(preSave(m))).collect(Collectors.toList()));
+        return objects.stream().map(o -> (String) o.get("id")).collect(Collectors.toList());
     }
 
     public void insertIfNotFound(Map where, Map object) {
@@ -235,6 +195,7 @@ public class DBCollection {
         String subject = findCurrentSubject();
         ZonedDateTime now = ZonedDateTime.now(db.clock);
         if (!o.containsKey("_id")) {
+            o.put("id", Uuid.getNewUUID());
             o.put("createdDate", now);
             o.put("createdBy", subject);
         }
@@ -274,6 +235,7 @@ public class DBCollection {
         Map $setOnInsert = (Map) update.get("$setOnInsert");
         $setOnInsert.put("createdDate", now);
         $setOnInsert.put("createdBy", subject);
+        $setOnInsert.put("id", Uuid.getNewUUID());
         return update;
     }
 

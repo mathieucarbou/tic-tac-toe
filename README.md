@@ -22,6 +22,12 @@ These libraries focus on specialized modules for quickly start an application co
 
 * No validation !
 
+* goal: capacity to integrate several services in a cloud and choose right tech for the needs
+
+* no optimization on resources: like css min, js min, concat, etc.
+
+* no namespaced in js code - juste plain functions attached to window object (bad but fast for a poc)
+
 https://developers.facebook.com/quickstarts/971673849550778/?platform=web
 
 

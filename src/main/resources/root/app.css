@@ -1,0 +1,83 @@
+.center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container {
+    width: 80%;
+    padding: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+#footer {
+    padding-top: 50px;
+    text-align: center;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+h1, h2, h3, h4, h5 {
+    padding: 5px;
+    text-align: center;
+}
+
+#login {
+    text-align: center;
+}
+
+#login-status {
+    padding-left: 20px;
+    display: inline-block;
+    color: red;
+    font-weight: bold;
+}
+
+.circle {
+    border-radius: 50%;
+}
+
+.rounded {
+    border-radius: 5px;
+}
+
+.fb_avatar, .fb_avatar img {
+    vertical-align: middle;
+}
+
+.box {
+    padding: 5px;
+    background-color: azure;
+}
+
+.border-sm {
+    border: 1px solid #8AC007;
+}
+
+.border-lg {
+    border: 2px solid #8AC007;
+}
+
+.pull-left {
+    float: left;
+}
+
+.pull-right {
+    float: right;
+}
+
+.col-2 {
+    width: 50%;
+}
+
+#gamer-room {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+#user h2 {
+    text-align: center;
+}

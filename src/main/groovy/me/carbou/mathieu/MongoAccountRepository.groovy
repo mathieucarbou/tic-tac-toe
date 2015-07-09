@@ -24,7 +24,6 @@ import com.guestful.jaxrs.security.token.AuthenticationToken
 import com.guestful.jaxrs.security.token.FacebookToken
 import me.carbou.mathieu.tictactoe.Utils
 import me.carbou.mathieu.tictactoe.db.DB
-import org.bson.types.ObjectId
 
 import javax.inject.Inject
 import javax.json.JsonObject
@@ -73,7 +72,7 @@ class MongoAccountRepository implements AccountRepository {
                                 }
                             ]
                         ], true) // upsert
-                        Map user = db.users.findOne([fb_id: fb_id], [_id: 1, roles: 1])
+                        Map user = db.users.findOne([fb_id: fb_id], [id: 1, roles: 1])
                         return toAccount(user)
                         break
 
@@ -92,7 +91,7 @@ class MongoAccountRepository implements AccountRepository {
         switch (system) {
 
             case 'tic-tac-toe':
-                Map user = db.users.findOne([_id: new ObjectId(principal.name)], [_id: 1, roles: 1])
+                Map user = db.users.findOne([id: principal.name], [id: 1, roles: 1])
                 return toAccount(user)
                 break
 
@@ -103,7 +102,7 @@ class MongoAccountRepository implements AccountRepository {
 
     private static Account toAccount(Map user) {
         if (user == null) return null
-        Account account = new Account(user._id as String)
+        Account account = new Account(user.id as String)
         account.locked = false
         account.addRoles(user.roles ?: [])
         return account
