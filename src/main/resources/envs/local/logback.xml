@@ -43,8 +43,8 @@
     </appender>
 
     <logger name="me.carbou.mathieu.tictactoe" level="TRACE"/>
-    <logger name="com.guestful.client" level="INFO"/>
-    <logger name="com.guestful.jaxrs.security" level="INFO"/>
+    <logger name="com.guestful.client" level="TRACE"/>
+    <logger name="com.guestful.jaxrs.security" level="TRACE"/>
 
     <logger name="org.glassfish.jersey.server.ApplicationHandler" level="INFO"/>
     <logger name="com.mongodb.DynamicConnectionStatus" level="WARN"/>

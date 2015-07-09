@@ -80,7 +80,7 @@ public final class Env {
     private static String getVersion() {
         try {
             Properties p = new Properties();
-            p.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("META-INF/maven/me.carbou.mathieu/tictactoe/pom.properties"));
+            p.load(Thread.currentThread().getContextClassLoader().getResourceAsStream("META-INF/maven/me.carbou.mathieu/tic-tac-toe/pom.properties"));
             return p.getProperty("version");
         } catch (Exception e) {
             return "<dev>";

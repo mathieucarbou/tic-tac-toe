@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Mathieu Carbou (mathieu@carbou.me)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,6 +21,7 @@ import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -47,7 +48,15 @@ public class StaticResource {
         if ("config.js".equals(resource)) {
             return Response.ok("window.config = {fbappid: " + Env.FACEBOOK_APP_ID + "};", "application/javascript").build();
         }
-        URL url = getClass().getResource("/root/" + resource);
+        URL url = null;
+        if (Env.isLocal()) {
+            File file = new File("src/main/resources/root", resource);
+            if (file.exists()) {
+                url = file.toURI().toURL();
+            }
+        } else {
+            url = getClass().getResource("/root/" + resource);
+        }
         if (url == null) throw new NotFoundException(resource);
         String type = URLConnection.getFileNameMap().getContentTypeFor(resource);
         if (type == null) type = MediaType.APPLICATION_OCTET_STREAM;

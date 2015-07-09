@@ -18,8 +18,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Tic-Tac-Toe Real-Time</title>
+    <title>Login - Tic-Tac-Toe</title>
+
+    <meta name="description" content="Tic-Tac-Toe by Mathieu Carbou"/>
     <meta charset="UTF-8">
+
+    <!-- facebook -->
+    <meta property="og:type" content="website"/>
+    <meta property="og:site_name" content="Tic-Tac-Toe"/>
+    <meta property="fb:app_id" content="971673849550778"/>
+    <meta property="og:title" content="Tic-Tac-Toe"/>
+    <meta property="og:description" content="Tic-Tac-Toe by Mathieu Carbou"/>
+    <meta property="og:url" content="http://tic-tac-toe-rt.mathieu.carbou.me/home.html"/>
+
+    <!-- twitter -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:site" content="@mathieucarbou"/>
+    <meta name="twitter:creator" content="@mathieucarbou"/>
+    <meta name="twitter:app:country" content="CA"/>
+    <meta name="twitter:description" content="Tic-Tac-Toe by Mathieu Carbou"/>
+    <meta name="twitter:title" content="Tic-Tac-Toe"/>
+
+    <!-- favicons -->
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
@@ -37,38 +57,117 @@
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
     <meta name="theme-color" content="#ffffff">
+
+    <style type="text/css">
+        .center {
+            margin: auto;
+            width: 80%;
+            border: 2px solid #8AC007;
+            padding: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #footer {
+            padding-top: 50px;
+            text-align: center;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        h1, h2, h3, h4, h5 {
+            padding: 5px;
+            text-align: center;
+        }
+
+        #login {
+            text-align: center;
+        }
+
+        #login-status {
+            padding-left: 20px;
+            display: inline-block;
+            color: red;
+            font-weight: bold;
+        }
+
+        .rounded {
+            border-radius: 50%;
+        }
+
+        #user img, #user-name {
+            vertical-align: middle;
+        }
+
+        #user-name {
+            font-weight: bold;
+        }
+    </style>
+
     <script type="application/javascript" src="/config.js"></script>
+    <script type="application/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
 </head>
 <body>
 
-<script>
-    // This is called with the results from from FB.getLoginStatus().
-    function statusChangeCallback(response) {
-        console.log('statusChangeCallback');
-        console.log(response);
-        // The response object is returned with a status field that lets the
-        // app know the current login status of the person.
-        // Full docs on the response object can be found in the documentation
-        // for FB.getLoginStatus().
-        if (response.status === 'connected') {
-            // Logged into your app and Facebook.
-            testAPI();
-        } else if (response.status === 'not_authorized') {
-            // The person is logged into Facebook, but not your app.
-            document.getElementById('status').innerHTML = 'Please log into this app.';
-        } else {
-            // The person is not logged into Facebook, so we're not sure if
-            // they are logged into this app or not.
-            document.getElementById('status').innerHTML = 'Please log into Facebook.';
-        }
-    }
+<div class="center">
+    <h1>Tic-Tac-Toe by Mathieu Carbou</h1>
 
-    // This function is called when someone finishes with the Login
-    // Button.  See the onlogin handler attached to it in the sample
-    // code below.
+    <div id="login" class="hidden">
+        <fb:login-button scope="public_profile,email,user_friends" onlogin="checkLoginState();">
+        </fb:login-button>
+
+        <div id="login-status">
+        </div>
+    </div>
+
+    <div id="user" class="hidden">
+    </div>
+
+    <div id="message" class="hidden">
+    </div>
+
+    <div id="footer">
+        <div class="fb-like" data-share="false" data-show-faces="true"></div>
+        <div class="fb-share-button" data-href="http://tic-tac-toe-rt.mathieu.carbou.me/home.html" data-layout="button"></div>
+    </div>
+</div>
+
+<script>
+
     function checkLoginState() {
         FB.getLoginStatus(function (response) {
-            statusChangeCallback(response);
+            console.log('checkLoginState()', response);
+            if (response.status === 'connected') {
+                // Logged into your app and Facebook.
+                connect(response.authResponse);
+            } else if (response.status === 'not_authorized') {
+                // The person is logged into Facebook, but not your app.
+                $('#login-status').text('Please log into this app.');
+                $('#login').show();
+            } else {
+                // The person is not logged into Facebook, so we're not sure if
+                // they are logged into this app or not.
+                $('#login-status').text('Please log into Facebook.');
+                $('#login').show();
+            }
+        });
+    }
+
+    function connect(authResponse) {
+        console.log('connect()', authResponse);
+        $.ajax('/api/users/auth/facebook/' + config.fbappid + '/' + authResponse.userID, {
+            type: "POST",
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify(authResponse)
+        }).done(function (body) {
+            window.user = body.data;
+            $('#login').hide();
+            $('#user').append('<div><img class="rounded" src="//graph.facebook.com/' + body.data.fb_id + '/picture?width=32&height=32" alt="' + body.data.name + '">&nbsp;&nbsp;<span id="user-name">' + body.data.name + '</span></div>');
+            $('#user').show();
         });
     }
 
@@ -79,26 +178,9 @@
             version: 'v2.3',
             cookie: true
         });
-
-        // Now that we've initialized the JavaScript SDK, we call
-        // FB.getLoginStatus().  This function gets the state of the
-        // person visiting this page and can return one of three states to
-        // the callback you provide.  They can be:
-        //
-        // 1. Logged into your app ('connected')
-        // 2. Logged into Facebook, but not your app ('not_authorized')
-        // 3. Not logged into Facebook and can't tell if they are logged into
-        //    your app or not.
-        //
-        // These three cases are handled in the callback function.
-
-        FB.getLoginStatus(function (response) {
-            statusChangeCallback(response);
-        });
-
+        checkLoginState();
     };
 
-    // Load the SDK asynchronously
     (function (d, s, id) {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;
@@ -107,38 +189,7 @@
         js.src = "//connect.facebook.net/en_US/sdk.js";
         fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));
-
-    // Here we run a very simple test of the Graph API after login is
-    // successful.  See statusChangeCallback() for when this call is made.
-    function testAPI() {
-        console.log('Welcome!  Fetching your information.... ');
-        FB.api('/me', function (response) {
-            console.log('Successful login for: ' + response.name);
-            document.getElementById('status').innerHTML =
-                    'Thanks for logging in, ' + response.name + '!';
-        });
-    }
 </script>
-
-<!--
-  Below we include the Login Button social plugin. This button uses
-  the JavaScript SDK to present a graphical Login button that triggers
-  the FB.login() function when clicked.
--->
-
-<fb:login-button scope="public_profile,email,user_friends" onlogin="checkLoginState();">
-</fb:login-button>
-
-<div id="status">
-</div>
-
-<div
-        class="fb-like"
-        data-share="false"
-        data-show-faces="true">
-</div>
-
-<div class="fb-share-button" data-href="http://tic-tac-toe-rt.mathieu.carbou.me/home.html" data-layout="button"></div>
 
 </body>
 </html>

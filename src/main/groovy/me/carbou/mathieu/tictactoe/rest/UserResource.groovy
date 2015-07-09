@@ -23,10 +23,10 @@ import com.guestful.jaxrs.security.subject.Subject
 import com.guestful.jaxrs.security.subject.SubjectContext
 import com.guestful.jaxrs.security.token.FacebookToken
 import me.carbou.mathieu.tictactoe.db.DB
+import org.bson.types.ObjectId
 
 import javax.annotation.security.PermitAll
 import javax.inject.Inject
-import javax.json.JsonObject
 import javax.security.auth.login.LoginException
 import javax.ws.rs.*
 import javax.ws.rs.container.ContainerRequestContext
@@ -35,7 +35,7 @@ import javax.ws.rs.core.Context
 /**
  * @author Mathieu Carbou (mathieu.carbou@gmail.com)
  */
-@Path("/api/gamers")
+@Path("/api/users")
 @Jsend
 public class UserResource {
 
@@ -48,19 +48,17 @@ public class UserResource {
     public Map auth(@Context ContainerRequestContext request,
                     @PathParam("appid") String facebookAppId,
                     @PathParam("uid") String facebookUserId,
-                    JsonObject fbData) {
-
+                    Map authResponse) {
         try {
             SubjectContext.login(new FacebookToken(
                 "tic-tac-toe",
                 facebookUserId,
-                new FacebookAccessToken(fbData.getString("accessToken")),
+                new FacebookAccessToken(authResponse.accessToken as String, authResponse.expiresIn as int),
                 facebookAppId,
-                fbData.getString("signedRequest", null)));
+                authResponse.signedRequest as String));
         } catch (LoginException e) {
             throw new AuthenticationException("Invalid facebook access", e, request);
         }
-
         return me();
     }
 
@@ -72,7 +70,7 @@ public class UserResource {
     public Map me() {
         Subject subject = SubjectContext.getSubject("tic-tac-toe", false);
         String guestId = subject.getPrincipal().getName();
-        Map gamer = db.users.findOne([_id: guestId])
+        Map gamer = db.users.findOne([_id: new ObjectId(guestId)])
         return gamer
     }
 
