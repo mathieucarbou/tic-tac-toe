@@ -8,5 +8,4 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .idea
 .env
-.iml
-
+*.iml
