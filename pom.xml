@@ -229,7 +229,7 @@
         <dependency>
             <groupId>com.guestful.module</groupId>
             <artifactId>guestful.module.jaxrs-filter-security</artifactId>
-            <version>1.13</version>
+            <version>1.14</version>
         </dependency>
 
         <!-- JAX-RS plugin for sort of Jsend format (http://labs.omniti.com/labs/jsend). Used to better supprot JSONP calls with errors returned -->
