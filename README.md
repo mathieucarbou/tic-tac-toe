@@ -6,7 +6,7 @@ __Goal__
 
 
 This PoC is probably bigger than you expect because it aims at being an exercise / test / challenge to be reused for other companies also. 
-Its goal is to show what we can do with several SaaS and PaaS in 2 days, by using components to build fast and scalable micro-service apps in teh cloud.
+Its goal is to show what we can do with several SaaS and PaaS in 2 days, by using components to build fast and scalable micro-service apps in the cloud.
 
 __Source code__
 
