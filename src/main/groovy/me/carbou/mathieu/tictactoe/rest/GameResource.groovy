@@ -26,6 +26,8 @@ import javax.inject.Inject
 import javax.json.Json
 import javax.json.JsonObject
 import javax.ws.rs.*
+import java.time.Clock
+import java.time.ZonedDateTime
 import java.util.function.Function
 import java.util.stream.Collectors
 import java.util.stream.Stream
@@ -39,6 +41,7 @@ public class GameResource {
 
     @Inject DB db
     @Inject Pusher pusher
+    @Inject Clock clock
 
     @GET
     @Path("walloffame")
@@ -71,7 +74,7 @@ public class GameResource {
         List<Map> users = db.users.find([id: [$in: [myId, targetId]]]).collect(Collectors.toList())
         Map me = users.find { it.id == myId }
         Map opponent = users.find { it.id == targetId }
-        if(!me || !opponent) {
+        if (!me || !opponent) {
             throw new BadRequestException()
         }
 
@@ -81,22 +84,29 @@ public class GameResource {
             throw new BadRequestException("Member " + targetId + " unavailable")
         }
 
+        // cleanup all non-finished games for the current user
+        // this task would be better put in an external worker but for this PoC it is set there.
+        db.games.remove([player: myId, finished: false, updatedDate: [$lt: ZonedDateTime.now(clock).minusHours(2)]])
+
         // create game
         String startWith = [myId, targetId].get(Math.abs(new Random().nextInt()) % 2)
         String game_id = db.games.insert([
             player: myId,
             opponent: targetId,
             start: startWith,
+            finished: false,
             winner: null,
             loser: null,
             draw: false,
             turn: startWith,
-            moves: []
+            board: ['_', '_', '_', '_', '_', '_', '_', '_', '_']
         ])
 
         // send them an event to start the game
         pusher.getChannel("private-gamer-" + myId).publish("challenge", Json.createObjectBuilder()
             .add("game_id", game_id)
+            .add("from", myId)
+            .add("to", targetId)
             .add("start", startWith)
             .add("turn", startWith)
             .add("opponent",
@@ -108,6 +118,8 @@ public class GameResource {
             .build())
         pusher.getChannel("private-gamer-" + targetId).publish("challenge", Json.createObjectBuilder()
             .add("game_id", game_id)
+            .add("from", myId)
+            .add("to", targetId)
             .add("start", startWith)
             .add("turn", startWith)
             .add("opponent",

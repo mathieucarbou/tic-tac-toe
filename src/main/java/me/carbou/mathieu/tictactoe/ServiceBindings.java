@@ -37,8 +37,8 @@ import com.guestful.jsr310.mongo.MongoJsr310;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import groovy.lang.GString;
-import me.carbou.mathieu.tictactoe.db.DB;
 import me.carbou.mathieu.MongoAccountRepository;
+import me.carbou.mathieu.tictactoe.db.DB;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.bson.BSON;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
@@ -134,6 +134,7 @@ public class ServiceBindings extends AbstractModule {
             .setAsync(true)
             .setPreserveRecipients(false)
             .setTrackOpens(true)
+            .setTrackClicks(false)
             .setTags(Env.isProduction() ? Collections.emptyList() : Collections.singletonList("testing"))
             .setApiKey(Env.MANDRILL_APIKEY));
     }

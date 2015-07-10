@@ -16,6 +16,7 @@
 package me.carbou.mathieu.tictactoe.rest
 
 import com.guestful.client.facebook.FacebookAccessToken
+import com.guestful.client.mandrill.MandrillClient
 import com.guestful.client.pusher.Pusher
 import com.guestful.client.pusher.PusherPresence
 import com.guestful.jaxrs.filter.jsend.Jsend
@@ -46,6 +47,7 @@ public class UserResource {
 
     @Inject DB db
     @Inject Pusher pusher
+    @Inject MandrillClient mandrillClient
 
     @POST
     @Path("auth/facebook/{appid}/{uid}")
@@ -56,6 +58,9 @@ public class UserResource {
                     @PathParam("appid") String facebookAppId,
                     @PathParam("uid") String facebookUserId,
                     Map authResponse) {
+
+        boolean existing = db.users.exist([fb_id: facebookUserId])
+
         try {
             SubjectContext.login(new FacebookToken(
                 "tic-tac-toe",
@@ -66,7 +71,17 @@ public class UserResource {
         } catch (LoginException e) {
             throw new AuthenticationException("Invalid facebook access", e, request);
         }
-        return me();
+
+        Map me = me()
+
+        if (!existing && me.email) {
+            mandrillClient.getTemplate("welcome").createMandrillMessage()
+                .set('FIRSTNAME', me.firstName as String)
+                .to(me.name as String, me.email as String)
+                .send()
+        }
+
+        return me
     }
 
     @GET
@@ -82,6 +97,9 @@ public class UserResource {
         return [
             id: gamer.id,
             name: gamer.name,
+            firstName: gamer.firstName,
+            lastName: gamer.lastName,
+            email: gamer.email,
             fb_id: gamer.fb_id,
             wins: gamer.wins ?: 0,
             losts: gamer.losts ?: 0
@@ -99,9 +117,8 @@ public class UserResource {
                     @HeaderParam(HttpHeaders.USER_AGENT) String userAgent) {
 
         String uid = SubjectContext.getSubject('tic-tac-toe').principal.name
-
         userAgent = userAgent ?: ""
-            String device = ['Android', 'webOS', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'IEMobile', 'Opera Mini', 'Windows', 'IOS', 'Mac'].find { userAgent.indexOf(it) != -1 } ?: 'Unknown'
+        String device = ['Android', 'webOS', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'IEMobile', 'Opera Mini', 'Windows', 'IOS', 'Mac'].find { userAgent.indexOf(it) != -1 } ?: 'Unknown'
 
         switch (channel_name) {
             case 'presence-gamer-room':

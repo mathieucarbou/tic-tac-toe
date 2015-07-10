@@ -96,3 +96,25 @@ h1, h2, h3, h4, h5 {
 #user h2 {
     text-align: center;
 }
+
+#ttt table {
+    border-collapse: collapse;
+    font-size: 50px;
+    font-weight: bold;
+}
+
+#ttt td {
+    border: 5px solid #000;
+    width: 100px;
+    height: 100px;
+    line-height: 100px;
+    text-align: center;
+}
+
+#ttt td:not(:empty) {
+    cursor: default !important;
+}
+
+#ttt td:empty:hover {
+    background-color: chocolate;
+}

@@ -28,6 +28,10 @@ These libraries focus on specialized modules for quickly start an application co
 
 * no namespaced in js code - juste plain functions attached to window object (bad but fast for a poc)
 
+* si heroku sleep, peut etre un peu plus long au 1er demarrage
+
+* no templating (i.e. handlebars) client-side: => quick'n'dirty
+
 https://developers.facebook.com/quickstarts/971673849550778/?platform=web
 
 

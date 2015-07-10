@@ -115,11 +115,30 @@ function startAsync() {
     gamerChannel.bind('challenge', function (message) {
         console.log('challenge', message);
         setUnavailable();
-        setTimeout(function () {
-            console.log('challenge end');
-            setAvailable();
-        }, 10000);
+        app.game = {
+            turn: message.turn,
+            opponent: message.opponent
+        };
+        var msg = $('#ttt .message').empty();
+        if (message.from == app.user.id) {
+            msg.append('<p class="fb_avatar">You challenged ' + message.opponent.name + '&nbsp;&nbsp;<img class="circle" src="//graph.facebook.com/' + message.opponent.fb_id + '/picture?width=32&height=32" alt="' + message.opponent.name + '"></p>');
+        } else {
+            msg.append('<p class="fb_avatar">You have been challenged by ' + message.opponent.name + '&nbsp;&nbsp;<img class="circle" src="//graph.facebook.com/' + message.opponent.fb_id + '/picture?width=32&height=32" alt="' + message.opponent.name + '"></span>');
+        }
+        if (message.start == app.user.id) {
+            msg.append('<p>You start! You have the cross, and your opponent have the circle!</p>');
+            $('#ttt table').css({cursor: 'move'});
+        } else {
+            msg.append('<p>' + message.opponent.name + ' starts! Your opponent have the cross and you have the circle!</p>');
+            $('#ttt table').css({cursor: 'wait'});
+        }
+        $('#ttt').removeClass('hidden');
+        playTurn()
     });
+}
+
+function playTurn() {
+
 }
 
 function setAvailable() {
@@ -177,5 +196,13 @@ $(function () {
         var targetId = $(this).closest('li').attr('user-id');
         console.log('challenging', targetId);
         $.ajax('/api/games/challenge/' + targetId, {type: "POST"});
+    });
+    $('#ttt table').on('click', 'td:empty', function (e) {
+        if (app.game.turn == app.user.id) {
+            var n = parseInt($(this).attr('id').substring(0, 4), 10);
+            var c = n % 10;
+            var l = Math.round(n / 10);
+            alert('l' + l + 'c' + c);
+        }
     });
 });
