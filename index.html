@@ -37,10 +37,12 @@ Its goal is to show what we can do with several SaaS and PaaS in 2 days, by usin
 
 <p><a href="http://tic-tac-toe-rt.mathieu.carbou.me">http://tic-tac-toe-rt.mathieu.carbou.me</a></p>
 
+<p>WARNING: first startup can be slow if the Heroku dyno is asleep</p>
+
 <p><strong>Technologies and libraries used</strong></p>
 
 <ul>
-<li>Java 8, JSR-330, JSR-250, JSR-310, JAX-RS</li>
+<li>Java 8, JSR-330, JSR-250, JSR-310, JSR-353, JAX-RS</li>
 <li>Guice, Jersey, Logback, SLF4J, Groovy, Redis, Undertow</li>
 <li>
 <a href="http://pusher.com">Pusher</a> for Real-Time com.</li>
@@ -53,6 +55,7 @@ Its goal is to show what we can do with several SaaS and PaaS in 2 days, by usin
 <li>
 <a href="http://mandrillapp.com">Mandrill</a> for mailing</li>
 <li>Librato &amp; Logentries for monitoring and logging</li>
+<li>Facebook</li>
 </ul>
 
 <p><strong>Application stack used</strong></p>
@@ -61,7 +64,22 @@ Its goal is to show what we can do with several SaaS and PaaS in 2 days, by usin
 <li>
 <a href="http://mycila.com">Mycila</a> open-source libraries I developed. I used Guice extensions.</li>
 <li>
-<a href="http://oss.guestful.com/">Guestful</a> open-source libraries I developed at Guestful, mainly focusing on JAX-RS client communication and JAX-RS addons. See this pom.xml for some information and Guestful GitHub.</li>
+<a href="http://oss.guestful.com/">Guestful</a> open-source libraries I developed at Guestful, mainly focusing on JAX-RS client communication and JAX-RS addons. See this pom.xml for some information and Guestful GitHub. These libraries provides:
+
+<ul>
+<li>JAX-RS Security and session clustering</li>
+<li><code>@Cache</code></li>
+<li>
+<code>@Jsend</code> support (useful for JSON-P calls to return http status codes)</li>
+<li>CORS</li>
+<li>JAX-RS Generic Json mapping (implemented by Groovy, JSR-353, etc)</li>
+<li>JSR-310 extensions (for mappings and for ZonedInterval)</li>
+<li>Undertow support for Jersey. Undertow is the most performing container right now.</li>
+<li>Logging extensions for logback, etc.</li>
+<li>A lot of rewritten clients for Mandrill, Pusher, etc., all based on JAX-RS client to reuse JAX-RS ecosystem, improve performance for connection pooling, avoid having a lot of of libs in our classspath and be able to switch the underlying http implementation.<br>
+</li>
+</ul>
+</li>
 </ul>
 
 <p><strong>Run the app on Heroku</strong></p>
