@@ -64,7 +64,7 @@ function auth(authResponse) {
         app.user = body.data;
         var u = app.user;
         $('#login').addClass('hidden');
-        $('#user').append('<h2 class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + ' : WINS: ' + u.wins + ', LOSTS: ' + u.losts + '</span></h2>').removeClass('hidden');
+        $('#user').append('<h2 class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + ' : WINS: ' + u.wins + ', LOSTS: ' + u.losts + ', DRAWS: ' + u.draws + '</span></h2>').removeClass('hidden');
     });
 }
 
@@ -78,7 +78,7 @@ function updateWallOfFame() {
             var ol = $('#walloffame ol');
             ol.empty();
             _.each(body.data, function (u) {
-                ol.append('<li class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + ' : WINS: ' + u.wins + ', LOSTS: ' + u.losts + '</span></li>');
+                ol.append('<li class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + ' : WINS: ' + u.wins + ', LOSTS: ' + u.losts + ', DRAWS: ' + u.draws + '</span></li>');
             });
         }
         $('#walloffame').removeClass('hidden');
@@ -86,7 +86,7 @@ function updateWallOfFame() {
 }
 
 function template_user(u) {
-    return '<li user-id="' + u.id + '" class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + ' on ' + u.device + ' (wins: ' + u.wins + ', losts: ' + u.losts + ')</span>&nbsp;&nbsp;<a class="challenge" href="#">CHALLENGE !</a></li>';
+    return '<li user-id="' + u.id + '" class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + ' on ' + u.device + ' (wins: ' + u.wins + ', losts: ' + u.losts + ', draws: ' + u.draws + ')</span>&nbsp;&nbsp;<a class="challenge" href="#">CHALLENGE !</a></li>';
 }
 
 function startAsync() {
@@ -110,12 +110,14 @@ function startAsync() {
 
     setAvailable();
 
-    // subscribe to resto events
     var gamerChannel = app.pusher.subscribe("private-gamer-" + app.user.id);
-    gamerChannel.bind('challenge', function (message) {
-        console.log('challenge', message);
+
+    // subscribe to game start event
+    gamerChannel.bind('game-challenge', function (message) {
+        console.log('game-challenge', message);
         setUnavailable();
         app.game = {
+            id: message.id,
             turn: message.turn,
             opponent: message.opponent
         };
@@ -127,18 +129,55 @@ function startAsync() {
         }
         if (message.start == app.user.id) {
             msg.append('<p>You start! You have the cross, and your opponent have the circle!</p>');
+            $('#ttt .turn').empty().append('<p>This is your turn!</p>');
             $('#ttt table').css({cursor: 'move'});
         } else {
             msg.append('<p>' + message.opponent.name + ' starts! Your opponent have the cross and you have the circle!</p>');
+            $('#ttt .turn').empty().append('<p>' + message.opponent.name + ' is playing...</p>');
             $('#ttt table').css({cursor: 'wait'});
         }
+        $('#ttt td').empty();
         $('#ttt').removeClass('hidden');
-        playTurn()
+    });
+
+    // subscribe to game turn event
+    gamerChannel.bind('game-turn', function (message) {
+        console.log('game-turn', message);
+        if (message.id == app.game.id) {
+            app.game.turn = message.next;
+            setBoard(message.board);
+            if (app.game.turn == app.user.id) {
+                $('#ttt .turn').empty().append('<p>This is your turn!</p>');
+            } else {
+                $('#ttt .turn').empty().append('<p>' + app.game.opponent.name + ' is playing...</p>');
+            }
+        }
+    });
+
+    // subscribe to game end event
+    gamerChannel.bind('game-finished', function (message) {
+        console.log('game-finished', message);
+        if (message.id == app.game.id) {
+            setBoard(message.board);
+            if (message.winner == 'draw') {
+                alert('Draw!');
+            } else if (message.winner == app.user.id) {
+                alert('You win!');
+            } else {
+                alert('You lost!');
+            }
+            $('#ttt').addClass('hidden');
+            setAvailable();
+            updateWallOfFame();
+        }
     });
 }
 
-function playTurn() {
-
+function setBoard(board) {
+    var td = $('#ttt td').toArray();
+    for (var i = 0; i < 9; i++) {
+        $(td[i]).text(board[i]);
+    }
 }
 
 function setAvailable() {
@@ -199,10 +238,8 @@ $(function () {
     });
     $('#ttt table').on('click', 'td:empty', function (e) {
         if (app.game.turn == app.user.id) {
-            var n = parseInt($(this).attr('id').substring(0, 4), 10);
-            var c = n % 10;
-            var l = Math.round(n / 10);
-            alert('l' + l + 'c' + c);
+            var i = parseInt($(this).attr('id').substring(5), 10);
+            $.ajax('/api/games/' + app.game.id + '/play/' + i, {type: "POST"});
         }
     });
 });

@@ -15,6 +15,7 @@
  */
 package me.carbou.mathieu.tictactoe.rest;
 
+import com.guestful.jaxrs.filter.cache.Cache;
 import me.carbou.mathieu.tictactoe.Env;
 import org.codehaus.groovy.runtime.ResourceGroovyMethods;
 
@@ -43,7 +44,7 @@ public class StaticResource {
 
     @GET
     @Path("{resource: ((?!api/?).)*}")
-    //@Cache(maxAge = 60 * 60) // 1-hour cache on browser-side
+    @Cache(maxAge = 60 * 60) // 1-hour cache on browser-side
     public Response getPage(@PathParam("resource") String resource) throws IOException {
         if ("config.js".equals(resource)) {
             return Response.ok("window.config={fbappid:'" + Env.FACEBOOK_APP_ID + "',pusherkey:'" + URI.create(Env.PUSHER_URL).getUserInfo().split(":")[0] + "'};", "application/javascript").build();

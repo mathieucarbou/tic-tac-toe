@@ -1,43 +1,89 @@
 # tic-tac-toe
+
 Real-Time Remote Tic-tac-toe
 
-* Source code on my GitHub at https://github.com/mathieucarbou/tic-tac-toe
+__Goal__
 
-* All Mycila and Guestful libraries I used are libraries I developed at Guestful and Mycila and I open-sourced them at https://github.com/guestful and https://github.com/mycila. 
-These libraries focus on specialized modules for quickly start an application completely JAX-RS based with DI. 
 
-* Application is deployed on Heroku at http://tic-tac-toe-rt.mathieu.carbou.me/
+This PoC is probably bigger than you expect because it aims at being an exercise / test / challenge to be reused for other companies also. 
+Its goal is to show what we can do with several SaaS and PaaS in 2 days, by using components to build fast and scalable micro-service apps in teh cloud.
 
-* The Heroku app only used Free addons (thus limited in terms of DB size, requests, etc). So If the app does not work due to these limitations, you'll have to setup your own environment, either locally or on Heroku
+__Source code__
+
+[https://github.com/mathieucarbou/tic-tac-toe](https://github.com/mathieucarbou/tic-tac-toe)
+
+__Live Demo__
+
+[http://tic-tac-toe-rt.mathieu.carbou.me](http://tic-tac-toe-rt.mathieu.carbou.me)
+
+__Technologies and libraries used__
+
+  * Java 8, JSR-330, JSR-250, JSR-310, JAX-RS
+  * Guice, Jersey, Logback, SLF4J, Groovy, Redis, Undertow
+  * [Pusher](http://pusher.com) for Real-Time com.
+  * [Heroku](https://www.heroku.com) for deployment
+  * [Redis Cloud](https://redislabs.com/redis-cloud) for session clustering 
+  * [MongoLab](https://www.mongolab.com) for NoSQL database 
+  * [Mandrill](http://mandrillapp.com) for mailing
+  * Librato & Logentries for monitoring and logging
+
+__Application stack used__
+
+  * [Mycila](http://mycila.com) open-source libraries I developed. I used Guice extensions.
+  * [Guestful](http://oss.guestful.com/) open-source libraries I developed at Guestful, mainly focusing on JAX-RS client communication and JAX-RS addons. See this pom.xml for some information and Guestful GitHub.
+
+__Run the app on Heroku__
+
+I strongly suggest you look at the demo. Otherwise, if you want to deploy on Heroku:
+
+  1. Fork the repo and associate an heroku app
+  2. Add the following (free) addons, and configure them:
+    * Mandrill
+    * MongoLab
+    * Pusher
+    * Redis Cloud
+  3. Add a DOMAIN env variable to point to your domain name
+  4. Create a Facebook app for the login and export FACEBOOK_APP_ID and FACEBOOK_APP_SECRET env var 
+  5. Deploy!
+
+__Run the app locally__
+
+You'll have to run the project `Main` class with  the following env vars:
+
+  * FACEBOOK_APP_ID
+  * FACEBOOK_APP_SECRET
+  * MANDRILL_APIKEY
+  * MANDRILL_USERNAME
+  * MONGOLAB_URI
+  * PUSHER_URL
+  * REDISCLOUD_URL
+
+I didn't take the time to create mock services. Mycila Guice extensions enables to create override modules for Guice in test folder.
+
+## Important Notes
+
+* All Mycila and Guestful libraries used are libraries I developed at Guestful and Mycila and they are open-sourced at https://github.com/guestful and https://github.com/mycila.  These libraries provides components to quickly start a micro-service app completely based on JAX-RS with DI with performance and scalability in mind. 
+
+* The Heroku app only uses free addons (thus limited in terms of DB size, requests, etc). So if the app does not work due to these limitations, you'll have to setup your own environment, either locally or on Heroku
 
 * Java is mainly used, but Groovy is used where Java lacks (i.e. Json support for REST and Mongo calls)
 
-* console.log and other debugging and traces have been left intentionally 
+* There is intentionally no model classes, no service classes surrounding DB calls and no data binding (event if the serializer we are using supports Jackson). KISS is the rule here for this PoC. 
 
-* for a simple app like this, I've avoided any model class and data binding
+* `console.log` and other debugging and traces have been left intentionally 
 
-* app is bigger than you probably wants because it aims at being an exercise / test / challenge to ebe reused for other companies also.
+* the app uses session clustering - it is entirely scalable on Heroku over several nodes
 
-* session clustering / entirely scalable
+* No validation! Validation in REST services has been kept as minimal as possible. There is no validation framework or custom made and no error handling client-side
 
-* No validation !
+* There is no optimization on resources: like css min, js min, concat, etc. I am used to that, but, hey... This is a PoC ;-)
 
-* goal: capacity to integrate several services in a cloud and choose right tech for the needs
+* No namespaced in js code - just plain functions attached to window object (this is bad but works for this little poc)
 
-* no optimization on resources: like css min, js min, concat, etc.
+* Ideally, this app would only be an API and there would be another app based on Node.JS to serve static files and templates merged with the data from the API. To simplify I've done a little service which delivers those files through Jersey. This is not optimal.
 
-* no namespaced in js code - juste plain functions attached to window object (bad but fast for a poc)
+* If the website is slow, it could be that the heroku dyno was asleep. Its wake-up can take little time.
 
-* si heroku sleep, peut etre un peu plus long au 1er demarrage
+* No templating (i.e. handlebars) client-side: => quick'n'dirty PoC. I am used to Node.JS style templating.
 
-* no templating (i.e. handlebars) client-side: => quick'n'dirty
-
-https://developers.facebook.com/quickstarts/971673849550778/?platform=web
-
-
-Librato
-Logentries
-Mandrill
-MongoLab
-Pusher
-Redis Cloud
+* No unit test: there's no algorithm or no code relevant to be tested here. 95% of the code has already been tested and run in production since several years. The new code for the Tic Tac Toe is merely integration code plus a small logic to find the completed board. This could be a wider discussion, but I don't think that unit tests the way most people do guarantees anything and even with a good coverage. I am much more in favor of fewer test, but well-designed and which covers complex stuff and all possible cases than having a lot of tests that covers everything but test nothing. Code review and pairing is to my mind better practices which should be coupled with efficient unit tests, not a soup of unit tests.  

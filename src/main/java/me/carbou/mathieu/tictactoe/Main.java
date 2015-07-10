@@ -18,6 +18,7 @@ package me.carbou.mathieu.tictactoe;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Stage;
+import com.guestful.jaxrs.filter.cache.CacheControlFeature;
 import com.guestful.jaxrs.filter.cors.CorsFilter;
 import com.guestful.jaxrs.filter.jsend.JSendFeature;
 import com.guestful.jaxrs.json.JsonProvider;
@@ -82,6 +83,7 @@ public class Main extends GApplication {
             HttpMethodOverrideFilter.class,
             SecurityFeature.class,
             JSendFeature.class,
+            CacheControlFeature.class,
             GZipEncoder.class,
             DeflateEncoder.class,
             EncodingFilter.class

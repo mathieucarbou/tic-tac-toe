@@ -77,7 +77,7 @@ public class ServiceBindings extends AbstractModule {
             .setMaxAge((int) Duration.ofDays(30).getSeconds())
             .setCookieName(Env.isProduction() ? "id" : "id-" + Env.NAME)
             .setCookiePath("/")
-            .setCookieDomain(Env.isLocal() ? null : ".carbou.me")));
+            .setCookieDomain(Env.isLocal() ? null : Env.DOMAIN)));
     }
 
     @Provides

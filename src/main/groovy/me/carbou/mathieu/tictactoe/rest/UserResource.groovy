@@ -75,6 +75,7 @@ public class UserResource {
         Map me = me()
 
         if (!existing && me.email) {
+            // should be done by a worker (i.e. Iron Worker) and triggered by a message queue
             mandrillClient.getTemplate("welcome").createMandrillMessage()
                 .set('FIRSTNAME', me.firstName as String)
                 .to(me.name as String, me.email as String)
@@ -102,7 +103,8 @@ public class UserResource {
             email: gamer.email,
             fb_id: gamer.fb_id,
             wins: gamer.wins ?: 0,
-            losts: gamer.losts ?: 0
+            losts: gamer.losts ?: 0,
+            draws: gamer.draws ?: 0
         ]
     }
 
@@ -131,6 +133,7 @@ public class UserResource {
                         .add("name", gamer.name as String)
                         .add("losts", gamer.losts ?: 0)
                         .add("wins", gamer.wins ?: 0)
+                        .add("draws", gamer.draws ?: 0)
                         .add("device", device)
                         .build())
                 return pusher.authenticate(socket_id, channel_name, presence).toJson()
