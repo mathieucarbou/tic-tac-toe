@@ -220,6 +220,7 @@ function setAvailable() {
                 .find('li[empty]').remove()
                 .end()
                 .append(template_user(member.info));
+            $('#soundFx')[0].play();
         }
     });
 
