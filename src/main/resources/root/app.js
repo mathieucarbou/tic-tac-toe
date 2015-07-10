@@ -65,20 +65,27 @@ function auth(authResponse) {
         var u = app.user;
         $('#login').addClass('hidden');
         $('#user').append('<h2 class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + ' : WINS: ' + u.wins + ', LOSTS: ' + u.losts + ', DRAWS: ' + u.draws + '</span></h2>').removeClass('hidden');
+        $('#app-content').removeClass('hidden');
     });
 }
 
 function updateWallOfFame() {
     console.log('updateWallOfFame()');
-    return $.ajax('/api/games/walloffame', {
+    return $.ajax('/api/games/walloffame?n=5', {
         type: "GET",
         dataType: 'json'
     }).done(function (body) {
         if (body.data.length) {
-            var ol = $('#walloffame ol');
-            ol.empty();
-            _.each(body.data, function (u) {
-                ol.append('<li class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + ' : WINS: ' + u.wins + ', LOSTS: ' + u.losts + ', DRAWS: ' + u.draws + '</span></li>');
+            var table = $('#walloffame table tbody');
+            table.empty();
+            _.each(body.data, function (u, i) {
+                table.append('<tr>' +
+                    '<td>' + (i + 1) + '</td>' +
+                    '<td class="fb_avatar"><img class="circle" src="//graph.facebook.com/' + u.fb_id + '/picture?width=32&height=32" alt="' + u.name + '">&nbsp;&nbsp;<span id="user-name">' + u.name + '</span></td>' +
+                    '<td>' + u.wins + '</td>' +
+                    '<td>' + u.losts + '</td>' +
+                    '<td>' + u.draws + '</td>' +
+                    '</tr>');
             });
         }
         $('#walloffame').removeClass('hidden');
@@ -121,6 +128,7 @@ function startAsync() {
             turn: message.turn,
             opponent: message.opponent
         };
+        $('#soundFx')[0].play();
         var msg = $('#ttt .message').empty();
         if (message.from == app.user.id) {
             msg.append('<p class="fb_avatar">You challenged ' + message.opponent.name + '&nbsp;&nbsp;<img class="circle" src="//graph.facebook.com/' + message.opponent.fb_id + '/picture?width=32&height=32" alt="' + message.opponent.name + '"></p>');
@@ -138,6 +146,7 @@ function startAsync() {
         }
         $('#ttt td').empty();
         $('#ttt').removeClass('hidden');
+        location.href = "#ttt";
     });
 
     // subscribe to game turn event
@@ -151,6 +160,7 @@ function startAsync() {
             } else {
                 $('#ttt .turn').empty().append('<p>' + app.game.opponent.name + ' is playing...</p>');
             }
+            $('#soundFx')[0].play();
         }
     });
 
@@ -158,6 +168,7 @@ function startAsync() {
     gamerChannel.bind('game-finished', function (message) {
         console.log('game-finished', message);
         if (message.id == app.game.id) {
+            $('#soundFx')[0].play();
             setBoard(message.board);
             if (message.winner == 'draw') {
                 alert('Draw!');

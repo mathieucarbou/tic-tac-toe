@@ -16,9 +16,11 @@ __Live Demo__
 
 [http://tic-tac-toe-rt.mathieu.carbou.me](http://tic-tac-toe-rt.mathieu.carbou.me)
 
+WARNING: first startup can be slow if the Heroku dyno is asleep
+
 __Technologies and libraries used__
 
-  * Java 8, JSR-330, JSR-250, JSR-310, JAX-RS
+  * Java 8, JSR-330, JSR-250, JSR-310, JSR-353, JAX-RS
   * Guice, Jersey, Logback, SLF4J, Groovy, Redis, Undertow
   * [Pusher](http://pusher.com) for Real-Time com.
   * [Heroku](https://www.heroku.com) for deployment
@@ -30,7 +32,16 @@ __Technologies and libraries used__
 __Application stack used__
 
   * [Mycila](http://mycila.com) open-source libraries I developed. I used Guice extensions.
-  * [Guestful](http://oss.guestful.com/) open-source libraries I developed at Guestful, mainly focusing on JAX-RS client communication and JAX-RS addons. See this pom.xml for some information and Guestful GitHub.
+  * [Guestful](http://oss.guestful.com/) open-source libraries I developed at Guestful, mainly focusing on JAX-RS client communication and JAX-RS addons. See this pom.xml for some information and Guestful GitHub. These libraries provides:
+    * JAX-RS Security and session clustering
+    * `@Cache`
+    * `@Jsend` support (useful for JSON-P calls to return http status codes)
+    * CORS
+    * JAX-RS Generic Json mapping (implemented by Groovy, JSR-353, etc)
+    * JSR-310 extensions (for mappings and for ZonedInterval)
+    * Undertow support for Jersey. Undertow is the most performing container right now.
+    * Logging extensions for logback, etc.
+    * A lot of rewritten clients for Mandrill, Pusher, etc., all based on JAX-RS client to reuse JAX-RS ecosystem, improve performance for connection pooling, avoid having a lot of of libs in our classspath and be able to switch the underlying http implementation.  
 
 __Run the app on Heroku__
 

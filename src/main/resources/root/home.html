@@ -82,12 +82,22 @@
     <div id="user" class="hidden box border-sm">
     </div>
 
-    <div class="box border-sm">
+    <div id="app-content" class="box border-sm hidden">
         <div id="walloffame" class="hidden box border-sm">
-            <h3>Wall of Fame of top-10 players:</h3>
-            <ol>
-                <li>Empty! Play to be part of!</li>
-            </ol>
+            <h3>Wall of Fame:</h3>
+            <table class="center" style="width: 80%">
+                <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>Wins</th>
+                    <th>Losts</th>
+                    <th>Draws</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
 
         <div id="gamer-room" class="hidden box border-sm">
@@ -123,6 +133,11 @@
     <div id="footer">
         <div class="fb-like" data-share="false" data-show-faces="true"></div>
         <div class="fb-share-button" data-href="http://tic-tac-toe-rt.mathieu.carbou.me/home.html" data-layout="button"></div>
+
+        <audio id="soundFx">
+            <source src="/notification.mp3">
+            Update your browser to enjoy HTML5 audio!
+        </audio>
     </div>
 </div>
 

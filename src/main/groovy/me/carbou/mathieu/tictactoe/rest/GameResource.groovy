@@ -49,7 +49,7 @@ public class GameResource {
     @Authenticated("tic-tac-toe")
     @RolesAllowed("gamer")
     @Produces("application/json; charset=utf-8")
-    public Stream<Map> wallOfFame() {
+    public Stream<Map> wallOfFame(@QueryParam("n") int n) {
         return db.users.find([
             wins: [$exists: true, $gte: 1]
         ], [
@@ -69,7 +69,7 @@ public class GameResource {
                 u.draws = u.draws ?: 0
                 return u
             }
-        }, 10, 0)
+        }, n > 100 ? 100 : n < 0 ? 0 : n, 0)
     }
 
     @POST
@@ -77,21 +77,21 @@ public class GameResource {
     @Authenticated("tic-tac-toe")
     @RolesAllowed("gamer")
     @Produces("application/json; charset=utf-8")
-    public void challenge(@PathParam("uid") String targetId) {
+    public void challenge(@PathParam("uid") String opponentId) {
         String myId = SubjectContext.getSubject('tic-tac-toe').principal.name
 
         // find players
-        List<Map> users = db.users.find([id: [$in: [myId, targetId]]]).collect(Collectors.toList())
+        List<Map> users = db.users.find([id: [$in: [myId, opponentId]]]).collect(Collectors.toList())
         Map me = users.find { it.id == myId }
-        Map opponent = users.find { it.id == targetId }
+        Map opponent = users.find { it.id == opponentId }
         if (!me || !opponent) {
             throw new BadRequestException()
         }
 
         // be sure there are available
-        JsonObject target = pusher.getChannel("presence-gamer-room").getMembers().getValuesAs(JsonObject).find { it.getString("id") == targetId }
+        JsonObject target = pusher.getChannel("presence-gamer-room").getMembers().getValuesAs(JsonObject).find { it.getString("id") == opponentId }
         if (!target) {
-            throw new BadRequestException("Member " + targetId + " unavailable")
+            throw new BadRequestException("Member " + opponentId + " unavailable")
         }
 
         // cleanup all non-finished games for the current user
@@ -99,10 +99,10 @@ public class GameResource {
         db.games.remove([player: myId, finished: false, updatedDate: [$lt: ZonedDateTime.now(clock).minusHours(2)]])
 
         // create game
-        String startWith = [myId, targetId].get(Math.abs(new Random().nextInt()) % 2)
+        String startWith = [myId, opponentId].get(Math.abs(new Random().nextInt()) % 2)
         String game_id = db.games.insert([
             player: myId,
-            opponent: targetId,
+            opponent: opponentId,
             start: startWith,
             finished: false,
             winner: null,
@@ -112,7 +112,7 @@ public class GameResource {
             board: ['', '', '', '', '', '', '', '', ''],
             symbol: [
                 X: startWith,
-                O: targetId
+                O: startWith == myId ? opponentId : myId
             ]
         ])
 
@@ -120,7 +120,7 @@ public class GameResource {
         pusher.getChannel("private-gamer-" + myId).publish("game-challenge", Json.createObjectBuilder()
             .add("id", game_id)
             .add("from", myId)
-            .add("to", targetId)
+            .add("to", opponentId)
             .add("start", startWith)
             .add("turn", startWith)
             .add("opponent",
@@ -130,10 +130,10 @@ public class GameResource {
                 .add("fb_id", opponent.fb_id as String)
                 .build())
             .build())
-        pusher.getChannel("private-gamer-" + targetId).publish("game-challenge", Json.createObjectBuilder()
+        pusher.getChannel("private-gamer-" + opponentId).publish("game-challenge", Json.createObjectBuilder()
             .add("id", game_id)
             .add("from", myId)
-            .add("to", targetId)
+            .add("to", opponentId)
             .add("start", startWith)
             .add("turn", startWith)
             .add("opponent",
