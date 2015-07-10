@@ -28,7 +28,8 @@ __Technologies and libraries used__
   * [MongoLab](https://www.mongolab.com) for NoSQL database 
   * [Mandrill](http://mandrillapp.com) for mailing
   * Librato & Logentries for monitoring and logging
-
+  * Facebook
+ 
 __Application stack used__
 
   * [Mycila](http://mycila.com) open-source libraries I developed. I used Guice extensions.
