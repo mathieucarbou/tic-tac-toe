@@ -258,6 +258,18 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-xml</artifactId>
+            <version>${groovy.version}</version>
+            <classifier>indy</classifier>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>groovy</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- jersey 2 + javax.json api -->
         <dependency>

@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Mathieu Carbou (mathieu@carbou.me)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,10 +28,7 @@ import com.guestful.jersey.container.Container;
 import com.guestful.json.JsonMapper;
 import com.guestful.logback.LogbackConfigurator;
 import com.mycila.guice.ext.service.ServiceModule;
-import me.carbou.mathieu.tictactoe.rest.ApiResource;
-import me.carbou.mathieu.tictactoe.rest.GameResource;
-import me.carbou.mathieu.tictactoe.rest.StaticResource;
-import me.carbou.mathieu.tictactoe.rest.UserResource;
+import me.carbou.mathieu.tictactoe.rest.*;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.message.DeflateEncoder;
 import org.glassfish.jersey.message.GZipEncoder;
@@ -93,7 +90,8 @@ public class Main extends GApplication {
             StaticResource.class,
             UserResource.class,
             GameResource.class,
-            ApiResource.class
+            ApiResource.class,
+            AppDirectResource.class
         );
     }
 

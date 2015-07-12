@@ -38,7 +38,7 @@ import java.util.stream.Stream
  */
 @Path("/api/games")
 @Jsend
-public class GameResource {
+class GameResource {
 
     @Inject DB db
     @Inject Pusher pusher
@@ -49,7 +49,7 @@ public class GameResource {
     @Authenticated("tic-tac-toe")
     @RolesAllowed("gamer")
     @Produces("application/json; charset=utf-8")
-    public Stream<Map> wallOfFame(@QueryParam("n") int n) {
+    Stream<Map> wallOfFame(@QueryParam("n") int n) {
         return db.users.find([
             wins: [$exists: true, $gte: 1]
         ], [
@@ -77,7 +77,7 @@ public class GameResource {
     @Authenticated("tic-tac-toe")
     @RolesAllowed("gamer")
     @Produces("application/json; charset=utf-8")
-    public void challenge(@PathParam("uid") String opponentId) {
+    void challenge(@PathParam("uid") String opponentId) {
         String myId = SubjectContext.getSubject('tic-tac-toe').principal.name
 
         // find players
@@ -150,7 +150,7 @@ public class GameResource {
     @Authenticated("tic-tac-toe")
     @RolesAllowed("gamer")
     @Produces("application/json; charset=utf-8")
-    public void play(@PathParam("id") String gameId, @PathParam("i") int i) {
+    void play(@PathParam("id") String gameId, @PathParam("i") int i) {
         String myId = SubjectContext.getSubject('tic-tac-toe').principal.name
         Map game = db.games.findOne([id: gameId])
 

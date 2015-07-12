@@ -43,7 +43,7 @@ import javax.ws.rs.core.MediaType
  * @author Mathieu Carbou (mathieu.carbou@gmail.com)
  */
 @Path("/api/users")
-public class UserResource {
+class UserResource {
 
     @Inject DB db
     @Inject Pusher pusher
@@ -54,7 +54,7 @@ public class UserResource {
     @Consumes("application/json; charset=utf-8")
     @Produces("application/json; charset=utf-8")
     @Jsend
-    public Map auth(@Context ContainerRequestContext request,
+    Map auth(@Context ContainerRequestContext request,
                     @PathParam("appid") String facebookAppId,
                     @PathParam("uid") String facebookUserId,
                     Map authResponse) {
@@ -91,7 +91,7 @@ public class UserResource {
     @PermitAll
     @Produces("application/json; charset=utf-8")
     @Jsend
-    public Map me() {
+    Map me() {
         Subject subject = SubjectContext.getSubject("tic-tac-toe", false);
         String guestId = subject.getPrincipal().getName();
         Map gamer = db.users.findOne([id: guestId])
