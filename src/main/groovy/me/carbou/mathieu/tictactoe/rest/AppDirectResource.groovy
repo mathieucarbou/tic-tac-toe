@@ -70,8 +70,7 @@ This URL can either be non-interactive (default and recommended behavior) or int
 This URL must contain the {eventUrl} placeholder which will be replaced by the URL of the order event at runtime.
         */
 
-        return """
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <result>
     <success>true</success>
     <message>Account creation successful</message>
@@ -102,12 +101,10 @@ This URL can only be non-interactive.
 This URL must contain the {eventUrl} placeholder which will be replaced by the URL of the order event at runtime.
         */
 
-        return """
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <result>
     <success>true</success>
-    <message>Account creation successful</message>
-    <accountIdentifier>new-account-identifier</accountIdentifier>
+    <message>message</message>
 </result>
 """
     }
@@ -134,11 +131,10 @@ This URL can only be non-interactive.
 This URL must contain the {eventUrl} placeholder, which will be replaced by the URL of the order event at runtime.
         */
 
-        return """
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <result>
     <success>true</success>
-    <message>Account creation successful</message>
+    <message>message</message>
 </result>
 """
     }
@@ -166,12 +162,10 @@ This URL can only be non-interactive.
 This URL must contain the {eventUrl} placeholder, which will be replaced by the URL of the order event at runtime.
         */
 
-        return """
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+        return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <result>
     <success>true</success>
-    <message>Account creation successful</message>
-    <accountIdentifier>new-account-identifier</accountIdentifier>
+    <message>message</message>
 </result>
 """
     }
