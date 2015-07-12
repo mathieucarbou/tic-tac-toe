@@ -48,11 +48,12 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
         return Response.temporaryRedirect(URI.create('/')).build()
     }
 
-    @POST
+    @GET
     @Path("subscription/created/{token}")
-    void subscriptionCreated(@PathParam("token") String token,
-                             @QueryParam("src") String eventUrl,
-                             @Context ContainerRequestContext request) {
+    @Produces("application/xml; charset=utf-8")
+    String subscriptionCreated(@PathParam("token") String token,
+                               @QueryParam("src") String eventUrl,
+                               @Context ContainerRequestContext request) {
 
         println("\nRequest: ${request.uriInfo.requestUri}\nQuery: ${request.uriInfo.queryParameters}\nHeaders: ${request.headers}")
 
@@ -68,13 +69,23 @@ AppDirect will call this URL when users purchase new subscriptions (SUBSCRIPTION
 This URL can either be non-interactive (default and recommended behavior) or interactive.
 This URL must contain the {eventUrl} placeholder which will be replaced by the URL of the order event at runtime.
         */
+
+        return """
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<result>
+    <success>true</success>
+    <message>Account creation successful</message>
+    <accountIdentifier>1234</accountIdentifier>
+</result>
+"""
     }
 
-    @POST
+    @GET
     @Path("subscription/updated/{token}")
-    void subscriptionUpdated(@PathParam("token") String token,
-                             @QueryParam("src") String eventUrl,
-                             @Context ContainerRequestContext request) {
+    @Produces("application/xml; charset=utf-8")
+    String subscriptionUpdated(@PathParam("token") String token,
+                               @QueryParam("src") String eventUrl,
+                               @Context ContainerRequestContext request) {
 
         println("\nRequest: ${request.uriInfo.requestUri}\nQuery: ${request.uriInfo.queryParameters}\nHeaders: ${request.headers}")
 
@@ -90,13 +101,23 @@ AppDirect will call this URL when users upgrade/downgrade subscriptions (SUBSCRI
 This URL can only be non-interactive.
 This URL must contain the {eventUrl} placeholder which will be replaced by the URL of the order event at runtime.
         */
+
+        return """
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<result>
+    <success>true</success>
+    <message>Account creation successful</message>
+    <accountIdentifier>new-account-identifier</accountIdentifier>
+</result>
+"""
     }
 
-    @POST
+    @GET
     @Path("subscription/canceled/{token}")
-    void subscriptionCanceled(@PathParam("token") String token,
-                              @QueryParam("src") String eventUrl,
-                              @Context ContainerRequestContext request) {
+    @Produces("application/xml; charset=utf-8")
+    String subscriptionCanceled(@PathParam("token") String token,
+                                @QueryParam("src") String eventUrl,
+                                @Context ContainerRequestContext request) {
 
         String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
             .request(MediaType.APPLICATION_XML_TYPE)
@@ -112,13 +133,22 @@ AppDirect will call this URL when users cancel subscriptions (SUBSCRIPTION_CANCE
 This URL can only be non-interactive.
 This URL must contain the {eventUrl} placeholder, which will be replaced by the URL of the order event at runtime.
         */
+
+        return """
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<result>
+    <success>true</success>
+    <message>Account creation successful</message>
+</result>
+"""
     }
 
-    @POST
+    @GET
     @Path("subscription/status-updated/{token}")
-    void subscriptionStatus(@PathParam("token") String token,
-                            @QueryParam("src") String eventUrl,
-                            @Context ContainerRequestContext request) {
+    @Produces("application/xml; charset=utf-8")
+    String subscriptionStatus(@PathParam("token") String token,
+                              @QueryParam("src") String eventUrl,
+                              @Context ContainerRequestContext request) {
 
         String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
             .request(MediaType.APPLICATION_XML_TYPE)
@@ -135,6 +165,27 @@ or gets automatically cancelled some time after an invoice is overdue (SUBSCRIPT
 This URL can only be non-interactive.
 This URL must contain the {eventUrl} placeholder, which will be replaced by the URL of the order event at runtime.
         */
+
+        return """
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<result>
+    <success>true</success>
+    <message>Account creation successful</message>
+    <accountIdentifier>new-account-identifier</accountIdentifier>
+</result>
+"""
     }
 
 }
+
+/*
+In case of error:
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<result>
+    <success>false</success>
+    <errorCode>ACCOUNT_NOT_FOUND</errorCode>
+    <message>The account TEST123 could not be found.</message>
+</result>
+
+ */

@@ -73,6 +73,10 @@ You'll have to run the project `Main` class with  the following env vars:
 
 I didn't take the time to create mock services. Mycila Guice extensions enables to create override modules for Guice in test folder.
 
+__AppDirect__
+
+* App link: https://www.appdirect.com/apps/31131 (i do not know why but this link it not public.I must loging to access it)
+
 ## Important Notes
 
 * All Mycila and Guestful libraries used are libraries I developed at Guestful and Mycila and they are open-sourced at https://github.com/guestful and https://github.com/mycila.  These libraries provides components to quickly start a micro-service app completely based on JAX-RS with DI with performance and scalability in mind. 
