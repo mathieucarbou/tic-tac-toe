@@ -341,6 +341,18 @@
             <version>${logback.version}</version>
         </dependency>
 
+        <!-- email logging -->
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1</version>
+        </dependency>
+
         <!-- redis -->
         <dependency>
             <groupId>redis.clients</groupId>
