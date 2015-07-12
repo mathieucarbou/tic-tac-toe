@@ -45,7 +45,7 @@ provider to use to resolve the user identity. It may also contain the {accountId
 OpenID Login HTTP Method: Whether the OpenID Login URL should receive a HTTP GET or a POST.
 OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly ensures that users have a seamless SSO experience.
         */
-        return Response.temporaryRedirect(URI.create('/'))
+        return Response.temporaryRedirect(URI.create('/')).build()
     }
 
     @POST
