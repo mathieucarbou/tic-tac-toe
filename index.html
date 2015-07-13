@@ -27,7 +27,8 @@
 <p><strong>Goal</strong></p>
 
 <p>This PoC is probably bigger than you expect because it aims at being an exercise / test / challenge to be reused for other companies also. 
-Its goal is to show what we can do with several SaaS and PaaS in 2 days, by using components to build fast and scalable micro-service apps in the cloud.</p>
+Its goal is to show what we can do with several SaaS and PaaS in 2 days, by using components to build fast and scalable micro-service apps in the cloud.
+It has been developed in 2 days.</p>
 
 <p><strong>Source code</strong></p>
 
@@ -117,6 +118,21 @@ Its goal is to show what we can do with several SaaS and PaaS in 2 days, by usin
 </ul>
 
 <p>I didn't take the time to create mock services. Mycila Guice extensions enables to create override modules for Guice in test folder.</p>
+
+<p><strong>AppDirect</strong></p>
+
+<ul>
+<li>App link: <a href="https://www.appdirect.com/apps/31131">https://www.appdirect.com/apps/31131</a> (i do not know why but this link it not public.I must loging to access it)</li>
+<li>I have spent hours to try to validate AppDirect OAuth signature for event callbacks by using the official JAX-RS RI. This does not seems to works since the signature validation process is not documented in AppDirect doc and does not seems to match standard RFC:
+
+<ul>
+<li>section 3.4.1.2 <a href="http://tools.ietf.org/html/draft-hammer-oauth-10#section-3.4.1.2">http://tools.ietf.org/html/draft-hammer-oauth-10#section-3.4.1.2</a>
+</li>
+<li>section 3.4.1.3.2 <a href="http://tools.ietf.org/html/draft-hammer-oauth-10#section-3.4.1.3.2">http://tools.ietf.org/html/draft-hammer-oauth-10#section-3.4.1.3.2</a>
+</li>
+</ul>
+</li>
+</ul>
 
 <h2>
 <a id="important-notes" class="anchor" href="#important-notes" aria-hidden="true"><span class="octicon octicon-link"></span></a>Important Notes</h2>
