@@ -76,7 +76,7 @@ I didn't take the time to create mock services. Mycila Guice extensions enables 
 __AppDirect__
 
 * App link: https://www.appdirect.com/apps/31131 (i do not know why but this link it not public.I must loging to access it)
-* All AppDirect specific work has been centralized in `AppDirectResource` plus some other classes to manage OAuth in Jersey 
+* All AppDirect specific work has been centralized in `AppDirectResource` plus some other classes to manage OAuth in Jersey (i.e. `ServiceBindings`) 
 
 ## Important Notes
 

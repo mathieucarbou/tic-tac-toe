@@ -22,11 +22,12 @@ import com.guestful.jaxrs.security.realm.AccountRepository
 import com.guestful.jaxrs.security.subject.SubjectContext
 import com.guestful.jaxrs.security.token.AuthenticationToken
 import com.guestful.jaxrs.security.token.FacebookToken
-import me.carbou.mathieu.tictactoe.Utils
 import me.carbou.mathieu.tictactoe.db.DB
 
 import javax.inject.Inject
 import javax.json.JsonObject
+import javax.ws.rs.container.ContainerRequestContext
+import javax.ws.rs.core.HttpHeaders
 import java.security.Principal
 import java.time.ZoneId
 import java.time.ZoneOffset
@@ -63,7 +64,7 @@ class MongoAccountRepository implements AccountRepository {
                                 email: facebookToken.me.getString("email", null),
                                 gender: facebookToken.me.getString("gender", null),
                                 timeZone: facebookToken.me.containsKey("timezone") ? ZoneId.ofOffset("UTC", ZoneOffset.ofHours(facebookToken.me.getInt("timezone"))) : null,
-                                locale: facebookToken.me.getString("locale", Utils.getBestLocale(SubjectContext.getSubject(token.system).getRequest()).toString()),
+                                locale: facebookToken.me.getString("locale", getBestLocale(SubjectContext.getSubject(token.system).getRequest()).toString()),
                                 fb_friends: facebookClient.getFriends((FacebookAccessToken) facebookToken.readCredentials()).getValuesAs(JsonObject.class).collect { f ->
                                     [
                                         facebookId: f.getString('id'),
@@ -106,6 +107,17 @@ class MongoAccountRepository implements AccountRepository {
         account.locked = false
         account.addRoles(user.roles ?: [])
         return account
+    }
+
+    private static Locale getBestLocale(ContainerRequestContext request) {
+        String header = request.getHeaderString(HttpHeaders.ACCEPT_LANGUAGE);
+        if (header == null) {
+            header = Locale.US.toLanguageTag();
+        }
+        // IE10 can send: Accept-Language: en-ca,en-us;q=05
+        header = header.replaceAll("(q=\\d)(\\d)", "\$1.\$2");
+        List<Locale.LanguageRange> ranges = Locale.LanguageRange.parse(header);
+        return Locale.forLanguageTag(ranges.get(0).getRange());
     }
 
 }
