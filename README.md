@@ -76,6 +76,9 @@ I didn't take the time to create mock services. Mycila Guice extensions enables 
 __AppDirect__
 
 * App link: https://www.appdirect.com/apps/31131 (i do not know why but this link it not public.I must loging to access it)
+* I have spent hours to try to validate AppDirect OAuth signature for event callbacks by using the official JAX-RS RI. This does not seems to works since the signature validation process is not documented in AppDirect doc and does not seems to match standard RFC:
+    * section 3.4.1.2 http://tools.ietf.org/html/draft-hammer-oauth-10#section-3.4.1.2
+    * section 3.4.1.3.2 http://tools.ietf.org/html/draft-hammer-oauth-10#section-3.4.1.3.2
 
 ## Important Notes
 

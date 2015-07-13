@@ -68,7 +68,9 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
 
         println("\nRequest: ${request.uriInfo.requestUri}\nQuery: ${request.uriInfo.queryParameters}\nHeaders: ${request.headers}")
 
-        verifySignature(request)
+        // commented since AppDirect OAuth signature does not match RFC standard for OAuth 1.0
+        // and the signature validation process is not documented at http://info.appdirect.com/developers/docs/api_integration/oauth_api_authentication
+        // verifySignature(request)
 
         String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
             .request(MediaType.APPLICATION_XML_TYPE)
