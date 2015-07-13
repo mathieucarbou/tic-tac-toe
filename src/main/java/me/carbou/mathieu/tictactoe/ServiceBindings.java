@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Mathieu Carbou (mathieu@carbou.me)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -37,8 +37,9 @@ import com.guestful.jsr310.mongo.MongoJsr310;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import groovy.lang.GString;
-import me.carbou.mathieu.MongoAccountRepository;
 import me.carbou.mathieu.tictactoe.db.DB;
+import me.carbou.mathieu.tictactoe.security.MongoAccountRepository;
+import me.carbou.mathieu.tictactoe.security.OAuth;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.bson.BSON;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
@@ -65,6 +66,8 @@ public class ServiceBindings extends AbstractModule {
 
     @Override
     protected void configure() {
+        bind(OAuth.class);
+
         bind(Clock.class).toInstance(Clock.systemUTC()); // enabled override the whole system clock
 
         // bind security service and the way of getting a connected UserContext
@@ -77,7 +80,7 @@ public class ServiceBindings extends AbstractModule {
             .setMaxAge((int) Duration.ofDays(30).getSeconds())
             .setCookieName(Env.isProduction() ? "id" : "id-" + Env.NAME)
             .setCookiePath("/")
-            .setCookieDomain(Env.isLocal() ? null : Env.DOMAIN)));
+            .setCookieDomain(Env.DOMAIN)));
     }
 
     @Provides

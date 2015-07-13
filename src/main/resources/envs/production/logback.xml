@@ -49,8 +49,8 @@
         <starttls>true</starttls>
         <username>${MANDRILL_USERNAME}</username>
         <password>${MANDRILL_APIKEY}</password>
-        <to>mathieu@carbou.me</to>
-        <from>tictactoe-${ENV}@carbou.me</from>
+        <to>mathieu@${EMAIL_DOMAIN}</to>
+        <from>tictactoe-${ENV}@${EMAIL_DOMAIN}</from>
         <subject>[tictactoe] ${ENV}|${DYNO} - ERROR: %msg</subject>
         <layout class="ch.qos.logback.classic.html.HTMLLayout"/>
         <cyclicBufferTracker>

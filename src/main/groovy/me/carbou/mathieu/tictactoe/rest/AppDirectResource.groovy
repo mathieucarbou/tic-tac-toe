@@ -15,11 +15,16 @@
  */
 package me.carbou.mathieu.tictactoe.rest
 
+import me.carbou.mathieu.tictactoe.Env
+import me.carbou.mathieu.tictactoe.security.ContainerOAuth1Request
+import org.glassfish.jersey.oauth1.signature.*
+
 import javax.inject.Inject
 import javax.ws.rs.*
 import javax.ws.rs.client.Client
 import javax.ws.rs.container.ContainerRequestContext
 import javax.ws.rs.core.Context
+import javax.ws.rs.core.HttpHeaders
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.core.Response
 
@@ -30,6 +35,7 @@ import javax.ws.rs.core.Response
 class AppDirectResource {
 
     @Inject Client client
+    @Inject OAuth1Signature oAuthSignature
 
     @GET
     @Path("login/openid")
@@ -49,72 +55,20 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
     }
 
     @GET
-    @Path("subscription/created/{token}")
+    @Path("subscription/{event}/{token}")
     @Produces("application/xml; charset=utf-8")
-    String subscriptionCreated(@PathParam("token") String token,
+    String subscriptionCreated(@PathParam("event") String event,
+                               @PathParam("token") String token,
                                @QueryParam("src") String eventUrl,
                                @Context ContainerRequestContext request) {
 
-        println("\nRequest: ${request.uriInfo.requestUri}\nQuery: ${request.uriInfo.queryParameters}\nHeaders: ${request.headers}")
-
-        String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
-            .request(MediaType.APPLICATION_XML_TYPE)
-            .get()
-            .readEntity(String)
-
-        println "Body:\n${xml}"
-
-        /*
-AppDirect will call this URL when users purchase new subscriptions (SUBSCRIPTION_ORDER events as described in the Event API document).
-This URL can either be non-interactive (default and recommended behavior) or interactive.
-This URL must contain the {eventUrl} placeholder which will be replaced by the URL of the order event at runtime.
-        */
-
-        return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<result>
-    <success>true</success>
-    <message>Account creation successful</message>
-    <accountIdentifier>1234</accountIdentifier>
-</result>
-"""
-    }
-
-    @GET
-    @Path("subscription/updated/{token}")
-    @Produces("application/xml; charset=utf-8")
-    String subscriptionUpdated(@PathParam("token") String token,
-                               @QueryParam("src") String eventUrl,
-                               @Context ContainerRequestContext request) {
+        if (!(event in ['created', 'updated', 'canceled', 'status-updated'])) {
+            throw new NotFoundException(request.getUriInfo().getRequestUri().toString())
+        }
 
         println("\nRequest: ${request.uriInfo.requestUri}\nQuery: ${request.uriInfo.queryParameters}\nHeaders: ${request.headers}")
 
-        String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
-            .request(MediaType.APPLICATION_XML_TYPE)
-            .get()
-            .readEntity(String)
-
-        println "Body:\n${xml}"
-
-        /*
-AppDirect will call this URL when users upgrade/downgrade subscriptions (SUBSCRIPTION_CHANGE events as described in the Event API document).
-This URL can only be non-interactive.
-This URL must contain the {eventUrl} placeholder which will be replaced by the URL of the order event at runtime.
-        */
-
-        return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<result>
-    <success>true</success>
-    <message>message</message>
-</result>
-"""
-    }
-
-    @GET
-    @Path("subscription/canceled/{token}")
-    @Produces("application/xml; charset=utf-8")
-    String subscriptionCanceled(@PathParam("token") String token,
-                                @QueryParam("src") String eventUrl,
-                                @Context ContainerRequestContext request) {
+        verifySignature(request)
 
         String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
             .request(MediaType.APPLICATION_XML_TYPE)
@@ -123,63 +77,53 @@ This URL must contain the {eventUrl} placeholder which will be replaced by the U
 
         println "Body:\n${xml}"
 
-        // call https://www.appdirect.com/api/integration/v1/events/${token} to get event
+        return success("my message", "my account id")
+    }
 
-        /*
-AppDirect will call this URL when users cancel subscriptions (SUBSCRIPTION_CANCEL events as described in the Event API document).
-This URL can only be non-interactive.
-This URL must contain the {eventUrl} placeholder, which will be replaced by the URL of the order event at runtime.
-        */
-
+    private static String success(String message, String accountIdentifier = null) {
         return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <result>
     <success>true</success>
-    <message>message</message>
-</result>
-"""
+    <message>${message}</message>
+    ${accountIdentifier ? ('<accountIdentifier>' + accountIdentifier + '</accountIdentifier>') : ''}
+</result>"""
     }
 
-    @GET
-    @Path("subscription/status-updated/{token}")
-    @Produces("application/xml; charset=utf-8")
-    String subscriptionStatus(@PathParam("token") String token,
-                              @QueryParam("src") String eventUrl,
-                              @Context ContainerRequestContext request) {
-
-        String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
-            .request(MediaType.APPLICATION_XML_TYPE)
-            .get()
-            .readEntity(String)
-
-        println "Body:\n${xml}"
-
-        // call https://www.appdirect.com/api/integration/v1/events/${token} to get event
-
-        /*
-AppDirect will call this URL when a subscription status changes, e.g, when a subscription becomes suspended after a free trial expires,
-or gets automatically cancelled some time after an invoice is overdue (SUBSCRIPTION_STATUS events described in the Event API document).
-This URL can only be non-interactive.
-This URL must contain the {eventUrl} placeholder, which will be replaced by the URL of the order event at runtime.
-        */
-
+    private static String error(String message) {
         return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<result>
-    <success>true</success>
-    <message>message</message>
-</result>
-"""
-    }
-
-}
-
-/*
-In case of error:
-
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <result>
     <success>false</success>
     <errorCode>ACCOUNT_NOT_FOUND</errorCode>
-    <message>The account TEST123 could not be found.</message>
-</result>
+    <message>${message}</message>
+</result>"""
+    }
 
- */
+    private void verifySignature(ContainerRequestContext request) throws OAuth1SignatureException {
+        String auth = request.getHeaderString(HttpHeaders.AUTHORIZATION);
+        if (auth == null) throw new NotAuthorizedException("Missing OAuth", "OAuth");
+        int start = auth.indexOf("oauth_signature=");
+        if (start == -1) throw new NotAuthorizedException("Bad OAuth", "OAuth");
+        int end = auth.indexOf("\"", start + 17);
+        if (end == -1) throw new NotAuthorizedException("Bad OAuth", "OAuth");
+
+        // establish the parameters that will be used to sign the request
+        OAuth1Parameters params;
+        try {
+            params = new OAuth1Parameters()
+                .consumerKey(Env.APPDIRECT_KEY)
+                .signatureMethod(HmaSha1Method.NAME)
+                .signature(URLDecoder.decode(auth.substring(start + 17, end), "UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        // establish the secrets that will be used to sign the request
+        OAuth1Secrets secrets = new OAuth1Secrets().consumerSecret(Env.APPDIRECT_SECRET);
+
+        // generate the digital signature and set in the request
+        if (!oAuthSignature.verify(new ContainerOAuth1Request(request), params, secrets)) {
+            throw new NotAuthorizedException("Invalid OAuth", "OAuth");
+        }
+    }
+
+}

@@ -32,6 +32,7 @@ import me.carbou.mathieu.tictactoe.rest.*;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.message.DeflateEncoder;
 import org.glassfish.jersey.message.GZipEncoder;
+import org.glassfish.jersey.oauth1.signature.OAuth1SignatureFeature;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.server.filter.EncodingFilter;
 import org.glassfish.jersey.server.filter.HttpMethodOverrideFilter;
@@ -69,6 +70,7 @@ public class Main extends GApplication {
         // content processing
         registerClasses(JsonProcessingFeature.class);
         register(new JsonProvider(injector.getInstance(JsonMapper.class)));
+        register(OAuth1SignatureFeature.class);
 
         // filters
         register(new CorsFilter()

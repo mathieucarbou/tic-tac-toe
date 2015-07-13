@@ -43,7 +43,9 @@ public final class Env {
     public static final String FACEBOOK_APP_SECRET = env("FACEBOOK_APP_SECRET", "");
     public static final String MANDRILL_USERNAME = env("MANDRILL_USERNAME", (String) null);
     public static final String MANDRILL_APIKEY = env("MANDRILL_APIKEY", (String) null);
-    public static final String DOMAIN = env("DOMAIN", ".carbou.me");
+    public static final String DOMAIN = env("DOMAIN", (String) null);
+    public static final String APPDIRECT_KEY = env("APPDIRECT_KEY", (String) null);
+    public static final String APPDIRECT_SECRET = env("APPDIRECT_SECRET", (String) null);
 
     public static boolean isLocal() {
         return NAME.equals(ENV_LOCAL);
