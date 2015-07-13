@@ -16,8 +16,11 @@
 package me.carbou.mathieu.tictactoe.rest
 
 import me.carbou.mathieu.tictactoe.Env
-import me.carbou.mathieu.tictactoe.security.ContainerOAuth1Request
-import org.glassfish.jersey.oauth1.signature.*
+import me.carbou.mathieu.tictactoe.security.OAuthServerRequest
+import org.glassfish.jersey.oauth1.signature.OAuth1Parameters
+import org.glassfish.jersey.oauth1.signature.OAuth1Secrets
+import org.glassfish.jersey.oauth1.signature.OAuth1Signature
+import org.glassfish.jersey.oauth1.signature.OAuth1SignatureException
 
 import javax.inject.Inject
 import javax.ws.rs.*
@@ -68,9 +71,8 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
 
         println("\nRequest: ${request.uriInfo.requestUri}\nQuery: ${request.uriInfo.queryParameters}\nHeaders: ${request.headers}")
 
-        // commented since AppDirect OAuth signature does not match RFC standard for OAuth 1.0
-        // and the signature validation process is not documented at http://info.appdirect.com/developers/docs/api_integration/oauth_api_authentication
-        // verifySignature(request)
+        // commented since AppDirect OAuth signature does not match RFC standard for OAuth 1.0 and the signature validation process is not documented at http://info.appdirect.com/developers/docs/api_integration/oauth_api_authentication
+        verifySignature(request)
 
         String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
             .request(MediaType.APPLICATION_XML_TYPE)
@@ -101,30 +103,14 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
     }
 
     private void verifySignature(ContainerRequestContext request) throws OAuth1SignatureException {
+        String wwwAuthenticateHeader = "OAuth realm=\"Tic-Tac-Toe\""
         String auth = request.getHeaderString(HttpHeaders.AUTHORIZATION);
-        if (auth == null) throw new NotAuthorizedException("Missing OAuth", "OAuth");
-        int start = auth.indexOf("oauth_signature=");
-        if (start == -1) throw new NotAuthorizedException("Bad OAuth", "OAuth");
-        int end = auth.indexOf("\"", start + 17);
-        if (end == -1) throw new NotAuthorizedException("Bad OAuth", "OAuth");
-
-        // establish the parameters that will be used to sign the request
-        OAuth1Parameters params;
-        try {
-            params = new OAuth1Parameters()
-                .consumerKey(Env.APPDIRECT_KEY)
-                .signatureMethod(HmaSha1Method.NAME)
-                .signature(URLDecoder.decode(auth.substring(start + 17, end), "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-
-        // establish the secrets that will be used to sign the request
+        if (auth == null) throw new NotAuthorizedException("Missing OAuth", wwwAuthenticateHeader);
+        OAuthServerRequest osr = new OAuthServerRequest(request);
+        OAuth1Parameters params = new OAuth1Parameters().readRequest(osr);
         OAuth1Secrets secrets = new OAuth1Secrets().consumerSecret(Env.APPDIRECT_SECRET);
-
-        // generate the digital signature and set in the request
-        if (!oAuthSignature.verify(new ContainerOAuth1Request(request), params, secrets)) {
-            throw new NotAuthorizedException("Invalid OAuth", "OAuth");
+        if (!oAuthSignature.verify(new OAuthServerRequest(request), params, secrets)) {
+            throw new NotAuthorizedException("Invalid OAuth", wwwAuthenticateHeader);
         }
     }
 
