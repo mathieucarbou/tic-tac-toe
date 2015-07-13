@@ -72,8 +72,6 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
             throw new NotFoundException(request.getUriInfo().getRequestUri().toString())
         }
 
-        println("\nRequest: ${request.uriInfo.requestUri}\nQuery: ${request.uriInfo.queryParameters}\nHeaders: ${request.headers}")
-
         //should be moved
         verifyOAuthSignature(request)
 
@@ -82,7 +80,7 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
             .get()
             .readEntity(String)
 
-        println "Body:\n${eventXML}"
+        println "Event:\n${eventXML}"
 
         return success("my message", "my account id")
     }
