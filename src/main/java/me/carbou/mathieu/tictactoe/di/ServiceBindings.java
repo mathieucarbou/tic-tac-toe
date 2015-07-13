@@ -139,10 +139,10 @@ public class ServiceBindings extends AbstractModule {
             .build();
         return ClientBuilder.newBuilder()
             .build()
-            .register(LoggingFilter.class)
             .register(oauth)
             .register(JsonProcessingFeature.class) // javax.json support
-            .register(new JsonProvider(jsonMapper)); // groovy support
+            .register(new JsonProvider(jsonMapper)) // groovy support
+            .register(LoggingFilter.class);
     }
 
     @Provides
