@@ -39,7 +39,6 @@ import com.mongodb.MongoClientURI;
 import groovy.lang.GString;
 import me.carbou.mathieu.tictactoe.db.DB;
 import me.carbou.mathieu.tictactoe.security.MongoAccountRepository;
-import me.carbou.mathieu.tictactoe.security.OAuth;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.bson.BSON;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
@@ -66,8 +65,6 @@ public class ServiceBindings extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(OAuth.class);
-
         bind(Clock.class).toInstance(Clock.systemUTC()); // enabled override the whole system clock
 
         // bind security service and the way of getting a connected UserContext
