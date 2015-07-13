@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2015 Mathieu Carbou (mathieu@carbou.me)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -51,6 +51,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
 
 import javax.inject.Singleton;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Feature;
@@ -142,7 +143,7 @@ public class ServiceBindings extends AbstractModule {
             .register(oauth)
             .register(JsonProcessingFeature.class) // javax.json support
             .register(new JsonProvider(jsonMapper)) // groovy support
-            .register(LoggingFilter.class);
+            .register(LoggingFilter.class, Priorities.USER);
     }
 
     @Provides
