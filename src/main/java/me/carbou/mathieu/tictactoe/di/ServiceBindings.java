@@ -39,6 +39,7 @@ import com.mongodb.MongoClientURI;
 import groovy.lang.GString;
 import me.carbou.mathieu.tictactoe.Env;
 import me.carbou.mathieu.tictactoe.db.DB;
+import me.carbou.mathieu.tictactoe.security.JaxrsOpenIdManager;
 import me.carbou.mathieu.tictactoe.security.MongoAccountRepository;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.bson.BSON;
@@ -88,7 +89,16 @@ public class ServiceBindings extends AbstractModule {
     }
 
     @Provides
-    @javax.inject.Singleton
+    @Singleton
+    JaxrsOpenIdManager openIdManager() {
+        JaxrsOpenIdManager manager = new JaxrsOpenIdManager();
+        manager.setRealm("http://tic-tac-toe-rt.mathieu.carbou.me/api/appdirect/login/*");
+        manager.setReturnTo("http://tic-tac-toe-rt.mathieu.carbou.me/api/appdirect/login/openid/callback");
+        return manager;
+    }
+
+    @Provides
+    @Singleton
     JedisPool jedisPool() {
         URI connectionURI = URI.create(Env.REDISCLOUD_URL);
         GenericObjectPoolConfig config = new GenericObjectPoolConfig();
@@ -100,13 +110,13 @@ public class ServiceBindings extends AbstractModule {
     }
 
     @Provides
-    @javax.inject.Singleton
+    @Singleton
     SessionRepository sessionRepository(JedisPool jedisPool, JsonMapper jsonMapper) {
         return new JedisJsonSessionRepository(jedisPool, jsonMapper);
     }
 
     @Provides
-    @javax.inject.Singleton
+    @Singleton
     Realm realm(HttpCookieRealm httpCookieRealm, LoginPasswordRealm loginPasswordRealm, PassthroughRealm passthroughRealm, FacebookRealm facebookRealm) {
         return new FirstMatchingRealm(passthroughRealm, loginPasswordRealm, httpCookieRealm, facebookRealm);
     }

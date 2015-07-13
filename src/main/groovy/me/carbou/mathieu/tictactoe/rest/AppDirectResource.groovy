@@ -15,15 +15,27 @@
  */
 package me.carbou.mathieu.tictactoe.rest
 
+import com.guestful.jaxrs.security.AuthenticationException
+import com.guestful.jaxrs.security.subject.SubjectContext
+import com.guestful.jaxrs.security.token.PassthroughToken
 import me.carbou.mathieu.tictactoe.Env
+import me.carbou.mathieu.tictactoe.db.DB
 import me.carbou.mathieu.tictactoe.di.AppDirect
+import me.carbou.mathieu.tictactoe.security.JaxrsOpenIdManager
 import me.carbou.mathieu.tictactoe.security.OAuthServerRequest
+import org.expressme.openid.Association
+import org.expressme.openid.Authentication
+import org.expressme.openid.Endpoint
+import org.expressme.openid.OpenIdException
 import org.glassfish.jersey.oauth1.signature.OAuth1Parameters
 import org.glassfish.jersey.oauth1.signature.OAuth1Secrets
 import org.glassfish.jersey.oauth1.signature.OAuth1Signature
 import org.glassfish.jersey.oauth1.signature.OAuth1SignatureException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import javax.inject.Inject
+import javax.security.auth.login.LoginException
 import javax.ws.rs.*
 import javax.ws.rs.client.Client
 import javax.ws.rs.container.ContainerRequestContext
@@ -38,26 +50,64 @@ import javax.ws.rs.core.Response
 @Path("/api/appdirect")
 class AppDirectResource {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AppDirectResource)
+
     String wwwAuthenticateHeader = "OAuth realm=\"Tic-Tac-Toe\""
+
+    volatile String alias
+    volatile byte[] key
 
     @Inject @AppDirect Client client
     @Inject OAuth1Signature oAuthSignature
+    @Inject JaxrsOpenIdManager openIdManager
+    @Inject DB db
 
     @GET
-    @Path("login/openid")
-    Response login(@QueryParam("openid_url") String openidUrl,
-                   @QueryParam("account_id") String accountId,
-                   @Context ContainerRequestContext request) {
+    @Path("login/openid/connect")
+    Response openid(@QueryParam("url") String url,
+                    @QueryParam("account") String accountId,
+                    @QueryParam("continue") String next,
+                    @Context ContainerRequestContext request) {
 
-        println("\nRequest: ${request.uriInfo.requestUri}\nQuery: ${request.uriInfo.queryParameters}\nHeaders: ${request.headers}")
-        /*
-OpenID Login URL: AppDirect will redirect users to this URL to log in for single sign-on.
-This URL must contain the {openid} placeholder, which will tell your OpenID consumer which
-provider to use to resolve the user identity. It may also contain the {accountIdentifier} placeholder if you need it.
-OpenID Login HTTP Method: Whether the OpenID Login URL should receive a HTTP GET or a POST.
-OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly ensures that users have a seamless SSO experience.
-        */
-        return Response.temporaryRedirect(URI.create('/')).build()
+        if (!url) {
+            url = 'https://www.appdirect.com/openid/id'
+        }
+
+        Endpoint endpoint = openIdManager.lookupEndpoint(url)
+        Association association = openIdManager.lookupAssociation(endpoint)
+        String authUrl = openIdManager.getAuthenticationUrl(endpoint, association)
+
+        LOGGER.trace("openid auth url: {}", authUrl)
+
+        alias = endpoint.getAlias()
+        key = association.getRawMacKey()
+        // these 2 values should be put in Redis for example in user session by the time the callback is made.
+        // for this PoC we will just put them in memory as if only one user at a time made a request
+
+        return Response.temporaryRedirect(URI.create(authUrl)).build()
+    }
+
+    @GET
+    @Path("login/openid/callback")
+    Response openidReturn(@Context ContainerRequestContext request) {
+        Authentication authentication
+        try {
+            authentication = openIdManager.getAuthentication(request, key, alias)
+        } catch (OpenIdException e) {
+            throw new AuthenticationException("OpenId auth failed", e, request)
+        }
+
+        LOGGER.trace("openid callback: {}", authentication)
+
+        Map user = db.users.findOne([email: authentication.getEmail()], [id: 1])
+
+        try {
+            SubjectContext.login(new PassthroughToken("tic-tac-toe", user.id as String))
+        } catch (LoginException e) {
+            throw new AuthenticationException("Authentication: " + authentication, e, request)
+        }
+
+        return Response.temporaryRedirect(URI.create("/")).build()
     }
 
     @GET
@@ -72,7 +122,7 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
             throw new NotFoundException(request.getUriInfo().getRequestUri().toString())
         }
 
-        //should be moved
+        //should be better moved to a Jersey filter
         verifyOAuthSignature(request)
 
         String eventXML = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
@@ -80,6 +130,7 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
             .get()
             .readEntity(String)
 
+        //TODO: add logic here to handle app direct event type and event data correctly
         println "Event:\n${eventXML}"
 
         return success("my message", "my account id")
