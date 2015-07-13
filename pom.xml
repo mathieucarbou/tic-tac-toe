@@ -245,11 +245,11 @@
             <artifactId>oauth1-client</artifactId>
             <version>${jersey2.version}</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.glassfish.jersey.security</groupId>
             <artifactId>oauth1-server</artifactId>
             <version>${jersey2.version}</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.glassfish.jersey.security</groupId>
             <artifactId>oauth1-signature</artifactId>
