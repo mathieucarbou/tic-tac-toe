@@ -44,8 +44,9 @@
 
     <logger name="me.carbou.mathieu.tictactoe" level="TRACE"/>
     <logger name="com.guestful.client" level="TRACE"/>
-    <logger name="com.guestful.jaxrs.security" level="TRACE"/>
+    <logger name="com.guestful.jaxrs.security" level="INFO"/>
 
+    <logger name="org.glassfish.jersey.filter.LoggingFilter" level="INFO"/>
     <logger name="org.glassfish.jersey.server.ApplicationHandler" level="INFO"/>
     <logger name="com.mongodb.DynamicConnectionStatus" level="WARN"/>
     <logger name="ch.qos.logback" level="WARN"/>

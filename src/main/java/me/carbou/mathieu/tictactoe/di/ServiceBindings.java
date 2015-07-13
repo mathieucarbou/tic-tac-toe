@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package me.carbou.mathieu.tictactoe;
+package me.carbou.mathieu.tictactoe.di;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -37,17 +37,23 @@ import com.guestful.jsr310.mongo.MongoJsr310;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
 import groovy.lang.GString;
+import me.carbou.mathieu.tictactoe.Env;
 import me.carbou.mathieu.tictactoe.db.DB;
 import me.carbou.mathieu.tictactoe.security.MongoAccountRepository;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.bson.BSON;
+import org.glassfish.jersey.client.oauth1.ConsumerCredentials;
+import org.glassfish.jersey.client.oauth1.OAuth1ClientSupport;
+import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
+import org.glassfish.jersey.oauth1.signature.HmaSha1Method;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
 
 import javax.inject.Singleton;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Feature;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
@@ -117,6 +123,24 @@ public class ServiceBindings extends AbstractModule {
     Client client(JsonMapper jsonMapper) {
         return ClientBuilder.newBuilder()
             .build()
+            .register(LoggingFilter.class)
+            .register(JsonProcessingFeature.class) // javax.json support
+            .register(new JsonProvider(jsonMapper)); // groovy support
+    }
+
+    @Provides
+    @AppDirect
+    @Singleton
+    Client appDirectOAuthclient(JsonMapper jsonMapper) {
+        ConsumerCredentials consumerCredentials = new ConsumerCredentials(Env.APPDIRECT_KEY, Env.APPDIRECT_SECRET);
+        Feature oauth = OAuth1ClientSupport.builder(consumerCredentials)
+            .signatureMethod(HmaSha1Method.NAME)
+            .feature()
+            .build();
+        return ClientBuilder.newBuilder()
+            .build()
+            .register(LoggingFilter.class)
+            .register(oauth)
             .register(JsonProcessingFeature.class) // javax.json support
             .register(new JsonProvider(jsonMapper)); // groovy support
     }

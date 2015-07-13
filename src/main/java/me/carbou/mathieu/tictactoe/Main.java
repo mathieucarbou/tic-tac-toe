@@ -29,6 +29,7 @@ import com.guestful.json.JsonMapper;
 import com.guestful.logback.LogbackConfigurator;
 import com.mycila.guice.ext.service.ServiceModule;
 import me.carbou.mathieu.tictactoe.rest.*;
+import org.glassfish.jersey.filter.LoggingFilter;
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.message.DeflateEncoder;
 import org.glassfish.jersey.message.GZipEncoder;
@@ -79,6 +80,7 @@ public class Main extends GApplication {
             .setAllowedMethods("GET,POST,PUT,DELETE"));
 
         registerClasses(
+            LoggingFilter.class,
             HttpMethodOverrideFilter.class,
             SecurityFeature.class,
             JSendFeature.class,

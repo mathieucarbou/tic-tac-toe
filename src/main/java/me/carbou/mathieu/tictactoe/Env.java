@@ -44,8 +44,8 @@ public final class Env {
     public static final String MANDRILL_USERNAME = env("MANDRILL_USERNAME", (String) null);
     public static final String MANDRILL_APIKEY = env("MANDRILL_APIKEY", (String) null);
     public static final String DOMAIN = env("DOMAIN", (String) null);
-    public static final String APPDIRECT_KEY = env("APPDIRECT_KEY", (String) null);
-    public static final String APPDIRECT_SECRET = env("APPDIRECT_SECRET", (String) null);
+    public static final String APPDIRECT_KEY = env("APPDIRECT_KEY", "");
+    public static final String APPDIRECT_SECRET = env("APPDIRECT_SECRET", "");
 
     public static boolean isLocal() {
         return NAME.equals(ENV_LOCAL);

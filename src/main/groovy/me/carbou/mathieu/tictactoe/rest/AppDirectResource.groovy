@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2015 Mathieu Carbou (mathieu@carbou.me)
  *
- * Licensed under the Apache License, Version 2.0 (the "License")
+ * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
@@ -16,6 +16,7 @@
 package me.carbou.mathieu.tictactoe.rest
 
 import me.carbou.mathieu.tictactoe.Env
+import me.carbou.mathieu.tictactoe.di.AppDirect
 import me.carbou.mathieu.tictactoe.security.OAuthServerRequest
 import org.glassfish.jersey.oauth1.signature.OAuth1Parameters
 import org.glassfish.jersey.oauth1.signature.OAuth1Secrets
@@ -39,7 +40,7 @@ class AppDirectResource {
 
     String wwwAuthenticateHeader = "OAuth realm=\"Tic-Tac-Toe\""
 
-    @Inject Client client
+    @Inject @AppDirect Client client
     @Inject OAuth1Signature oAuthSignature
 
     @GET
@@ -61,7 +62,7 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
 
     @GET
     @Path("subscription/{event}/{token}")
-    @Produces("application/xml charset=utf-8")
+    @Produces("application/xml; charset=utf-8")
     String subscriptionCreated(@PathParam("event") String event,
                                @PathParam("token") String token,
                                @QueryParam("src") String eventUrl,
@@ -76,12 +77,12 @@ OpenID Realm: Realm for the OpenID consumer. Setting this parameter correctly en
         //should be moved
         verifyOAuthSignature(request)
 
-        String xml = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
+        String eventXML = client.target("https://www.appdirect.com/api/integration/v1/events/${token}")
             .request(MediaType.APPLICATION_XML_TYPE)
             .get()
             .readEntity(String)
 
-        println "Body:\n${xml}"
+        println "Body:\n${eventXML}"
 
         return success("my message", "my account id")
     }
